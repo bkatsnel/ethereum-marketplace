@@ -2,7 +2,7 @@ import React from 'react'
 
 import PurchaseRow from './PurchaseRow'
 
-const PurchaseList = ({user, loading, loaded, purchases, onWatch=f=>f}) => {
+const PurchaseList = ({user, loading, loaded, purchases, watch, refresh, onGet=f=>f, onWatch=f=>f}) => {
 
   console.log('Purchase List Entry', loading, loaded)
 
@@ -27,10 +27,14 @@ const PurchaseList = ({user, loading, loaded, purchases, onWatch=f=>f}) => {
   }
 
   if (!loaded && !loading) {
-    console.log('Owner Form onWatch')
-    onWatch()
+    console.log('Orders/Purchase List onGet')
+    onGet()
   }
 
+  if (loaded && refresh) {
+    console.log('Orders/Purchase List onWatch')
+    onWatch()
+  }
 
   return(
     <div>
@@ -55,6 +59,7 @@ const PurchaseList = ({user, loading, loaded, purchases, onWatch=f=>f}) => {
       {loading ? <p>Loading Orders...</p> : loaded && purchases.length > 0 ? PurchaseList(purchases) :
                  <p>No Orders Found</p>
       }
+      {watch ? <p>Looking for Aditional Orders...</p> : null}
 
     </div>
 

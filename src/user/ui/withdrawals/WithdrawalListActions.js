@@ -7,6 +7,7 @@ export const ADD_WITHDRAWAL = 'ADD_WITHDRAWAL'
 export const START_WITHDRAWALS_LOAD = 'START_WITHDRAWALS_LOAD'
 export const END_WITHDRAWALS_LOAD = 'END_WITHDRAWALS_LOAD'
 export const SET_WITHDRAWALS_BLOCK = 'SET_WITHDRAWALS_BLOCK'
+export const UPDATE_STORE_BALANCE = 'UPDATE_STORE_BALANCE'
 
 function addWithdrawal(withdrawal) {
     return {
@@ -34,6 +35,13 @@ function endWithdrawalsLoad() {
     }
 }
   
+function updateStoreBalance(name, withdrawal) {
+  return {
+    type: UPDATE_STORE_BALANCE,
+    payload: { "name": name, "withdrawal": withdrawal }
+  }
+}
+
 export function watchWithdrawals() {
     let web3 = store.getState().web3.web3Instance
     let fromBlock = store.getState().stores.block
@@ -88,7 +96,8 @@ export function watchWithdrawals() {
               } 
               // Add Admiin Info To Withdrawal
               console.log('Withdrawals Payload', payload)
-              return dispatch(addWithdrawal(payload))
+              dispatch(addWithdrawal(payload))
+              return dispatch(updateStoreBalance(web3.toUtf8(name), amount.toNumber()))
   
             })
             // Not Synced Yet

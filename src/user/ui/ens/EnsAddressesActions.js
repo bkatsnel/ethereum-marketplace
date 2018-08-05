@@ -29,6 +29,29 @@ function endENSLoad() {
   }
 }
 
+function populateEnsStore(results, dispatch, instance) {
+
+  return new Promise((resolve) => {
+
+    results.forEach(async (result, i, arr) =>  {
+
+      let name = await instance.name.call(namehash.hash(`${result.args.a.slice(2)}.addr.reverse`));
+      // Build Ens Record Payload
+      let payload = {
+        "record": {"node": result.args.node, "address": result.args.a, "name": name},
+        "block": result.blockNumber
+      } 
+      // console.log('ENS Payload', payload)
+      dispatch(addEnsRecord(payload))
+      // When done resolve
+      if (i === arr.length - 1) resolve('Done')
+      
+    })
+
+  })
+
+}
+
 export function getENS() {
   let web3 = store.getState().web3.web3Instance
   let fromBlock = store.getState().ens.block
@@ -58,24 +81,16 @@ export function getENS() {
           // Define Event
           let addEnsAddressEvent = instance.AddrChanged({}, {fromBlock: fromBlock, toBlock: 'latest', address: web3.eth.accounts })
           // Watch Event
-          addEnsAddressEvent.get((error, results) => {
+          addEnsAddressEvent.get(async (error, results) => {
             // Log errors, if any.
             if (error) {
               console.error(error);
             }
-            
-            results.forEach( async (result) =>  {
-
-              let name = await instance.name.call(namehash.hash(`${result.args.a.slice(2)}.addr.reverse`));
-              // Build Ens Record Payload
-              let payload = {
-                "record": {"node": result.args.node, "address": result.args.a, "name": name},
-                "block": result.blockNumber
-              } 
-              // console.log('ENS Payload', payload)
-              dispatch(addEnsRecord(payload))
-            })
-
+            // Process results if any
+            if (results.length > 0) {
+              await populateEnsStore(results, dispatch, instance)
+            }
+            // Set load complete when done
             return dispatch(endENSLoad());
 
           })

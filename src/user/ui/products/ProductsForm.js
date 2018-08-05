@@ -1,8 +1,8 @@
 import React from 'react'
 import ProductsList from './ProductsList'
 
-const AddProductForm = ({stores, name, products, loading, loaded, 
-  onAdd=f=>f, onWatch=f=>f, onWatchStores=f=>f, onStoreChange=f=>f}) => {
+const AddProductForm = ({stores, name, products, loading, loaded, watch, 
+  onAdd=f=>f, onWatch=f=>f, onGet=f=>f, onReset=f=>f, onGetStores=f=>f, onStoreChange=f=>f}) => {
 
   let _id, _quantity, _price, _description
   console.log('Products Form Entry')
@@ -11,7 +11,7 @@ const AddProductForm = ({stores, name, products, loading, loaded,
     let newStoreName = e.target.value
     console.log("Product Store Select", newStoreName)
     onStoreChange(newStoreName)
-    onWatch(newStoreName)
+    onReset()
   }
 
   const createSelectItems = () => {
@@ -39,7 +39,7 @@ const AddProductForm = ({stores, name, products, loading, loaded,
       _description.value = ''
   
       // console.log("Product Form Submit oon Watch")
-      // onWatch(name)
+      onWatch(name)
 
     } else {
 
@@ -51,11 +51,13 @@ const AddProductForm = ({stores, name, products, loading, loaded,
   }
 
   if (!stores.loaded && !stores.loading) {
-      onWatchStores()
+      console.log("Main Products Get Stores")
+      onGetStores()
   } 
 
   if (!loaded && !loading && name !== "") {
-      onWatch(name)
+      console.log("Main Products Get")
+      onGet(name)
   } 
 
   return(
@@ -82,9 +84,9 @@ const AddProductForm = ({stores, name, products, loading, loaded,
       <hr />
       <br />
       {/* <label>Double Click to View Product Information</label> */}
-      {loading ? <p>Loading Products...</p> : 
+      {loading ? <p>Loading Store Products...</p> : 
           loaded && products.length > 0 ? <ProductsList products={products}/> : <p>No Products Found</p> }
-
+      {watch ? <p>Looking for Additional Store Products...</p> : null}
     </div>
 
   )

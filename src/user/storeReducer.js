@@ -36,8 +36,8 @@ const initialState = {
 
     if (action.type === 'UPDATE_STORE_BALANCE') {
        console.log("update store balance", state.stores)
-       let newStores = state.stores.map((store) => store.name === action.payload.name ? 
-          {...store, funds: store.funds + action.payload.total, orders: ++store.orders} : store
+       let newStores = state.stores.map((store) => store.name === action.payload.name && store.funds > 0 ? 
+          {...store, funds: store.funds - action.payload.withdrawal} : store
        )
        console.log("update store balance", newStores)
        return {

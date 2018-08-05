@@ -1,6 +1,6 @@
 import { connect } from 'react-redux'
 import StoresForm from './StoresForm'
-import { addStores, watchStores, getStores, watchStorePurchases, setOwnerStore } from './StoresFormActions'
+import { addStores, watchStores, getStores, setOwnerStore } from './StoresFormActions'
 
 const mapStateToProps = (state, ownProps) => {
   return {
@@ -22,14 +22,8 @@ const mapDispatchToProps = (dispatch) => {
     onGet: () => {
       dispatch(getStores())
     },
-    onWonGetatch: () => {
-      dispatch(getStores())
-    },
     onSetStore: (storeInfo) => {
       dispatch(setOwnerStore(storeInfo))
-    },
-    onWatchPurchases: () => {
-      dispatch(watchStorePurchases())
     }
   }
 }

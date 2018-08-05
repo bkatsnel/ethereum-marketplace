@@ -23,6 +23,7 @@ contract OnlineMarketplace is Administerable {
         uint funds;
         uint productNo;
         bytes32 descHash;
+        uint orders;
         mapping (uint => Product) products;
     }
     
@@ -78,7 +79,7 @@ contract OnlineMarketplace is Administerable {
     // Login Function
 
     function login() public view Active returns (bytes32) {
-        
+        // Return Account Type
         if (isAdministrator()) return "admin"; 
         else if (isStoreOwner()) return "owner";
         else return "customer";
@@ -145,9 +146,9 @@ contract OnlineMarketplace is Administerable {
     }
     
     function getStore(bytes32 name) public view Active OnlyOwner ValidStoreName(name) 
-    returns (bytes32 _name, address _owner, uint _funds, uint _products, bytes32 descHash) {
+    returns (bytes32 _name, address _owner, uint _funds, uint _products, bytes32 descHash, uint orders) {
         Store storage store = stores[name];
-        return (store.name, store.owner, store.funds, store.productNo, store.descHash);
+        return (store.name, store.owner, store.funds, store.productNo, store.descHash, store.orders);
     }
     
     function addStoreProduct(bytes32 name, uint id, uint quantity, uint price, bytes32 description) public
@@ -192,6 +193,7 @@ contract OnlineMarketplace is Administerable {
         product.quantity = product.quantity - quantity;
         // Update Store Info
         store.funds += cost;
+        store.orders++;
         // Update Owner Info
         owner.balance += cost;
         owner.orders++;

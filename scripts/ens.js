@@ -23,6 +23,7 @@ module.exports = async (callback) =>  {
     let resolver = await PublicResolver.deployed();
     let reverseresolver = await ReverseRegistrar.deployed();
 
+    console.log('3 ENS Contracts deployed.\n')
     // console.log("Ens", ens)
     let owner = web3.eth.accounts[0];
     // console.log('owner', owner)
@@ -32,9 +33,12 @@ module.exports = async (callback) =>  {
 
         await ens.setSubnodeOwner(0, web3.sha3(tld), owner, {from: owner})
         await ens.setSubnodeOwner(namehash.hash(tld), web3.sha3(name), owner, {from: owner})
+
+        console.log(`Owners are set for ${tld} and ${name}.${tld}\n`)
+
         await ens.setResolver(hashedname, PublicResolver.address, {from: owner});
 
-        await resolver.setAddr(hashedname, owner, {from:owner})
+        await resolver.setAddr(hashedname, owner, {from: owner})
         let res1 = await resolver.addr.call(hashedname);
         console.log(res1, '==', owner)
 

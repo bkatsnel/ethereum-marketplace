@@ -1,7 +1,7 @@
 import React from 'react'
 import StoresList from './StoresList'
 
-const AddStoreForm = ({stores, loading, loaded, watch, onAdd=f=>f, onWatch=f=>f, onGet=f=>f,  onSetStore=f=>f, onWatchPurchases=f=>f}) => {
+const AddStoreForm = ({stores, loading, loaded, watch, onAdd=f=>f, onWatch=f=>f, onGet=f=>f,  onSetStore=f=>f}) => {
 
   let _name, _logo
 
@@ -21,7 +21,6 @@ const AddStoreForm = ({stores, loading, loaded, watch, onAdd=f=>f, onWatch=f=>f,
   if (!loaded && !loading) {
     console.log('Stores Form Watch')
     onGet()
-    onWatchPurchases()
   }
 
   return(

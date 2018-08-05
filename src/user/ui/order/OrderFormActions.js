@@ -4,12 +4,19 @@ import store from '../../../store'
 const contract = require('truffle-contract')
 
 const DESCRIBE_ORDER = 'DESCRIBE_ORDER'
+const SET_PURCHASES_REFRESH = 'SET_PURCHASES_REFRESH'
 
 export function describeOrder(order) {
   console.log("Describe Order", order)
   return {
     type: DESCRIBE_ORDER,
     payload: order
+  }
+}
+
+function setPurchasesRefresh() {
+  return {
+    type: SET_PURCHASES_REFRESH
   }
 }
 
@@ -31,7 +38,7 @@ export function placeOrder(name, id, quantity, price, description) {
         if (error) {
           console.error(error);
         }
-
+      
         try { 
           //Get Deployed Marketplace Contract Instance
           let instance = await marketplace.deployed();
@@ -39,6 +46,8 @@ export function placeOrder(name, id, quantity, price, description) {
           let payment = quantity * price;
           // Attempt to sign up user.
           await instance.placeOrder(name, id, quantity, price, description, {value: payment, from: coinbase})
+          // Retrun Start Watch
+          return dispatch(setPurchasesRefresh())
 
         } catch(error) {
           // If error...

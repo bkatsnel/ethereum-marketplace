@@ -3,7 +3,8 @@ const initialState = {
     loading: false,
     loaded: false,
     products: [],
-    block: 0
+    block: 0,
+    watch: false
   }
   
   const productReducer = (state = initialState, action) => {
@@ -18,14 +19,22 @@ const initialState = {
       console.log('add product', action.payload)
       if (state.products.length === 0 
         || state.products.filter((product) => product.description === action.payload.product.description).length === 0) {
-        
-        return {
-          ...state, 
-          name: action.payload.name,
-          products: [ ...state.products, action.payload.product ],
-          block: action.payload.block
-        }
 
+        if (state.name === action.payload.name) {
+
+          return {
+            ...state, 
+            products: [ ...state.products, action.payload.product ],
+            block: action.payload.block
+          }
+
+        } else {
+
+          console.log('Did not add product for store', action.payload.name)
+          return state
+
+        }
+        
       } else {
 
         return state
@@ -52,7 +61,7 @@ const initialState = {
       }
     }
 
-    if (action.type === 'START_LOADING_PRODUCTS') {
+    if (action.type === 'START_PRODUCTS_LOAD') {
         return {
           ...state, 
           loaded: false,
@@ -74,6 +83,20 @@ const initialState = {
           loaded: true,
           loading: false
         }
+    }
+
+    if (action.type === 'START_PRODUCTS_WATCH') {
+      return {
+        ...state, 
+        watch: true
+      }
+    }
+
+    if (action.type === 'END_PRODUCTS_WATCH') {
+      return {
+        ...state, 
+        watch: false
+      }
     }
 
     if (action.type === 'SET_PRODUCTS_BLOCK') {

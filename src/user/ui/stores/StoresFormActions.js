@@ -241,6 +241,46 @@ export function watchStores() {
   }
 }
 
+function populateStores(results, dispatch, instance, ipfs, web3, coinbase) {
+
+  return new Promise((resolve) => {
+
+    results.forEach(async (result, i, arr) => {
+      // Get Bytes32 Encoded IPFS Hash And Convert to IPFS 
+      let hash = bytes32ToIPFSHash(result.args.descHash)
+      let logo = ''
+
+      let store = await instance.getStore.call(web3.toUtf8(result.args.name), {from: coinbase})
+      // console.log('Store Info Returned',store)
+
+      ipfs.cat(hash, (err, res) => {
+        if (err) throw err
+
+        res.on('data', (d) => logo += d)
+        res.on('end', () => { 
+          // Create Store Payload
+          let payload = {
+            "store": {"name": web3.toUtf8(result.args.name), "owner": result.args.owner, "funds": store[2].toNumber(),
+                      "orders": store[5].toNumber(), "logo": logo},
+            "block": result.blockNumber
+          } 
+          // Add Admin Info To Store
+          console.log('Stores Payload', payload)
+          return dispatch(addStore(payload))
+
+        })
+
+      })
+
+      // When done resolve
+      if (i === arr.length - 1) resolve('Done')
+
+    })
+
+  })
+
+}
+
 export function getStores() {
   let web3 = store.getState().web3.web3Instance
   let fromBlock = store.getState().stores.block
@@ -280,40 +320,41 @@ export function getStores() {
           // Define Event
           let addStoresEvent = instance.LogAddStore({owner: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
           // Watch Event
-          addStoresEvent.get((error, results) => {
+          addStoresEvent.get(async (error, results) => {
             // Log errors, if any.
             if (error) {
               console.error(error);
             }
            
-            results.forEach((result) => {
-              // Get Bytes32 Encoded IPFS Hash And Convert to IPFS 
-              let hash = bytes32ToIPFSHash(result.args.descHash)
-              let logo = ''
+            if (results.length > 0) {
+              await populateStores(results, dispatch, instance, ipfs, web3, coinbase)
+            }
+            // results.forEach((result) => {
+            //   // Get Bytes32 Encoded IPFS Hash And Convert to IPFS 
+            //   let hash = bytes32ToIPFSHash(result.args.descHash)
+            //   let logo = ''
 
-              ipfs.cat(hash, (err, res) => {
-                if (err) throw err
+            //   ipfs.cat(hash, (err, res) => {
+            //     if (err) throw err
 
-                res.on('data', (d) => logo += d)
-                res.on('end', () => { 
-                  // Create Store Payload
-                  let payload = {
-                    "store": {"name": web3.toUtf8(result.args.name), "owner": result.args.owner, "funds": 0, "orders": 0, "logo": logo},
-                    "block": result.blockNumber
-                  } 
-                  // Add Admin Info To Store
-                  console.log('Stores Payload', payload)
-                  return dispatch(addStore(payload))
+            //     res.on('data', (d) => logo += d)
+            //     res.on('end', () => { 
+            //       // Create Store Payload
+            //       let payload = {
+            //         "store": {"name": web3.toUtf8(result.args.name), "owner": result.args.owner, "funds": 0, "orders": 0, "logo": logo},
+            //         "block": result.blockNumber
+            //       } 
+            //       // Add Admin Info To Store
+            //       console.log('Stores Payload', payload)
+            //       return dispatch(addStore(payload))
 
-                })
+            //     })
 
-            })
+            // })
 
            })
 
            return dispatch(endStoresLoad());
-
-          })
 
         } catch(error) {
             // If error...

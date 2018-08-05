@@ -1,6 +1,6 @@
 import { connect } from 'react-redux'
 import StoreProductList from './StoreProductList'
-import { watchProducts } from '../products/ProductsFormActions'
+import { getProducts } from '../products/ProductsFormActions'
 import { describeOrder } from '../order/OrderFormActions'
 
 const mapStateToProps = (state, ownProps) => {
@@ -14,8 +14,8 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    onWatch: (name) => {
-      dispatch(watchProducts(name))
+    onGet: (name) => {
+      dispatch(getProducts(name))
     },
     onSelect: (orderDesc) => {
       dispatch(describeOrder(orderDesc))

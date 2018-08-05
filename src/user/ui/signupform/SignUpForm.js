@@ -36,7 +36,7 @@ class SignUpForm extends Component {
           <label htmlFor="name">Customer Information</label>
           <br />
           <input id="name" type="text" value={this.state.name} onChange={this.onInputChangeName.bind(this)} placeholder="Name" />
-          <input id="address" type="text" value={this.state.homeAddress} onChange={this.onInputChangeAddress.bind(this)} placeholder="Address" />
+          <input id="address" type="text" value={this.state.homeAddress} onChange={this.onInputChangeAddress.bind(this)} placeholder="Mail Address" />
           <span className="pure-form-message">These are required fields.</span>
 
           <br />

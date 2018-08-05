@@ -1,7 +1,7 @@
 import { connect } from 'react-redux'
 import ProductsForm from './ProductsForm'
-import { addProducts, watchProducts, changeProductsStoreName } from './ProductsFormActions'
-import { watchStores  } from '../stores/StoresFormActions'
+import { addProducts, watchProducts, getProducts, changeProductsStoreName, resetProductsLoaded } from './ProductsFormActions'
+import { getStores  } from '../stores/StoresFormActions'
 
 const mapStateToProps = (state, ownProps) => {
   return {
@@ -9,7 +9,8 @@ const mapStateToProps = (state, ownProps) => {
     name: state.products.name,
     loading: state.products.loading,
     loaded: state.products.loaded,
-    products: state.products.products
+    products: state.products.products,
+    watch: state.products.watch
   }
 }
 
@@ -21,8 +22,14 @@ const mapDispatchToProps = (dispatch) => {
     onWatch: (name) => {
       dispatch(watchProducts(name))
     },
-    onWatchStores: (fromBlock) => {
-      dispatch(watchStores(fromBlock))
+    onGet: (name) => {
+      dispatch(getProducts(name))
+    },
+    onGetStores: () => {
+      dispatch(getStores())
+    },
+    onReset: () => {
+      dispatch(resetProductsLoaded())
     },
     onStoreChange: (name) => {
       dispatch(changeProductsStoreName(name))

@@ -7,9 +7,12 @@ export const ADD_PRODUCT = 'ADD_PRODUCT'
 // export const RESET_PRODUCTS_LOADED = 'RESET_PRODUCTS_LOADED'
 export const START_PRODUCTS_LOAD = 'START_PRODUCTS_LOAD'
 export const END_PRODUCTS_LOAD = 'END_PRODUCTS_LOAD'
+export const RESET_PRODUCTS_LOADED = 'RESET_PRODUCTS_LOADED'
 export const SET_PRODUCTS_BLOCK = 'SET_PRODUCTS_BLOCK'
 export const CHANGE_PRODUCTS_STORE_NAME = 'CHANGE_PRODUCTS_STORE_NAME'
 export const SET_PRODUCTS_STORE_NAME = 'SET_PRODUCTS_STORE_NAME'
+export const START_PRODUCTS_WATCH = 'START_PRODUCTS_WATCH'
+export const END_PRODUCTS_WATCH = 'END_PRODUCTS_WATCH'
 
 function addProduct(name) {
   return {
@@ -18,11 +21,11 @@ function addProduct(name) {
   }
 }
 
-// function resetProductsLoaded() {
-//   return {
-//     type: RESET_PRODUCTS_LOADED
-//   }
-// }
+export function resetProductsLoaded() {
+  return {
+    type: RESET_PRODUCTS_LOADED
+  }
+}
 
 function startProductsLoad() {
   return {
@@ -40,6 +43,18 @@ function setProductsBlock(fromBlock) {
 function endProductsLoad() {
   return {
     type: END_PRODUCTS_LOAD
+  }
+}
+
+function startProductsWatch() {
+  return {
+    type: START_PRODUCTS_WATCH
+  }
+}
+
+function endProductsWatch() {
+  return {
+    type: END_PRODUCTS_WATCH
   }
 }
 
@@ -87,7 +102,7 @@ export function addProducts(name, id, quanity, price, description) {
           // dispatch(resetProductsLoaded())
 
           // Invoke watchProducts
-          return watchProducts(name)
+          return startProductsWatch(name)
 
         } catch(error) {
           // If error...
@@ -125,7 +140,7 @@ export function watchProducts(name) {
           console.error(error);
         }
         // Indicate Load Start
-        dispatch(startProductsLoad())
+        dispatch(startProductsWatch())
 
         try { 
           //Get Deployed Marketplace Contract Instance
@@ -165,13 +180,100 @@ export function watchProducts(name) {
               } 
               // Add Admiin Info To Product
               console.log('Products Payload', payload)
-              return dispatch(addProduct(payload))
-
+              dispatch(addProduct(payload))
+              // Stop watching when done
+              return dispatch(endProductsWatch());
             } 
 
           })
-          // Not yet synced with watch
-          return dispatch(endProductsLoad());
+
+        } catch(error) {
+            // If error...
+            console.error(error)
+            return dispatch(endProductsWatch());
+        }
+      })
+
+  }
+
+  } else {
+
+    console.error('Web3 is not initialized.');
+
+  }
+}
+
+export function getProducts(name) {
+  // Retrieve State Info
+  let web3 = store.getState().web3.web3Instance
+  let fromBlock = store.getState().products.block
+  //Debug Code
+  console.log("Get Products From Block", fromBlock, name)
+  // Double-check web3's status.
+  if (typeof web3 !== 'undefined') {
+
+    return function(dispatch) {
+
+      // Using truffle-contract we create the marketplace object.
+      const marketplace = contract(OnlineMarketplaceContract)
+      marketplace.setProvider(web3.currentProvider)
+
+      // Get current ethereum name.
+      web3.eth.getCoinbase(async (error, coinbase) => {
+        // Log errors, if any.
+        if (error) {
+          console.error(error);
+        }
+        // Indicate Load Start
+        dispatch(startProductsLoad())
+
+        try { 
+          //Get Deployed Marketplace Contract Instance
+          let instance = await marketplace.deployed();
+          // If from Block is 0 get contrat created block
+          if (fromBlock === 0) {
+
+              let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+              fromBlock = contractBlock.toNumber()
+              dispatch(setProductsBlock({ "block": fromBlock}))
+              console.log("Products From Block Set to ", fromBlock)
+
+          }
+          // Print Info
+          console.log('Products Get Name', name)
+          // Define Event
+          let addProductsEvent = instance.LogAddStoreProduct({name: name}, {fromBlock: fromBlock, toBlock: 'latest'})
+          // Watch Event
+          addProductsEvent.get((error, results) => {
+            // Log errors, if any.
+            if (error) {
+              console.error(error);
+            }
+            
+            results.forEach((result) => {
+
+               // Fix For Filtering Problem
+              if (name ===  web3.toUtf8(result.args.name)) {
+
+                let payload = {
+                  "product": {"id": result.args.id.toNumber(), 
+                              "quantity": result.args.quantity.toNumber(), 
+                              "price":  result.args.price.toNumber(),
+                              "description":  web3.toUtf8(result.args.description),
+                  },
+                  "block": result.blockNumber,
+                  "name": name
+                } 
+                // Add Admiin Info To Product
+                console.log('Products Payload', payload)
+                return dispatch(addProduct(payload))
+
+              } 
+
+            })
+            // End Load when done
+            return dispatch(endProductsLoad());
+          })
 
         } catch(error) {
             // If error...

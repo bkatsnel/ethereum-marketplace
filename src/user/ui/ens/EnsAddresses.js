@@ -23,7 +23,7 @@ const EnsRecordList = ({ records, loading, loaded, onGet=f=>f}) => {
     console.log("EnsRecordList Enter")
 
     if (!loading && !loaded) {
-        console.log("EnsRecordlist Watch")
+        console.log("EnsRecordlist Get")
         onGet()
     }
 

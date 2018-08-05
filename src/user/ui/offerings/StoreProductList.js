@@ -3,13 +3,13 @@ import React from 'react'
 
 import StoreProductRow from './StoreProductRow';
 
-const StoreProductList = ({name, loading, loaded, products, onWatch=f=>f, onSelect=f=>f }) => {
+const StoreProductList = ({name, loading, loaded, products, onGet=f=>f, onSelect=f=>f }) => {
 
     console.log("StoreProductList Enter", name)
 
     if (!loading && !loaded) {
         console.log("StoreProductList Watch With Name", name)
-        onWatch(name)
+        onGet(name)
     }
 
     const listProducts = (products, name) => {

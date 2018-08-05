@@ -16,8 +16,7 @@ const mapDispatchToProps = (dispatch) => {
   return {
     onPlace: (name, id, quantity, price, description) => {
       dispatch(placeOrder(name, id, quantity, price, description))
-    },
-
+    }
   }
 }
 

@@ -33,7 +33,7 @@ const initialState = {
       }
     }
 
-    if (action.type === 'START_LOADING_ENS') {
+    if (action.type === 'START_ENS_LOAD') {
         return {
           ...state, 
           loaded: false,
@@ -49,7 +49,7 @@ const initialState = {
         }
     }
 
-    if (action.type === 'END_LOADING_ENS') {
+    if (action.type === 'END_ENS_LOAD') {
         return {
           ...state, 
           loaded: true,
