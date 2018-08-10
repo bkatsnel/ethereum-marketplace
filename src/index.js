@@ -23,6 +23,7 @@ import Purchases from './user/layouts/purchases/Purchases'
 import Withdrawals from './user/layouts/withdrawals/Withdrawals'
 import Payment from './user/layouts/payment/Payment'
 import ensAddresses from './user/layouts/ens/ensAddresses'
+import getPrice from './user/layouts/getprice/getPrice'
 import IpfsStatus from './layouts/ipfs/IpfsStatus'
 
 // Redux Store
@@ -56,6 +57,7 @@ render((
           <Route path="owners" component={UserIsAdministrator(Owners)} />
           <Route path="ipfsstatus" component={UserIsAdministrator(IpfsStatus)} />
           <Route path="ensaddresses" component={UserIsAdministrator(ensAddresses)} />
+          <Route path="price" component={UserIsAdministrator(getPrice)} />
           <Route path="stores" component={UserIsOwner(Stores)} />
           <Route path="products" component={UserIsOwner(Products)} />
           <Route path="withdrawals" component={UserIsOwner(Withdrawals)} />

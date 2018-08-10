@@ -4,7 +4,7 @@ var SafeMath = artifacts.require("./zeppelin/math/SafeMath.sol");
 var Administerable = artifacts.require("./Administerable.sol");
 var OnlineMarketplace = artifacts.require("./OnlineMarketplace.sol");
 
-module.exports = function(deployer) {
+module.exports = function(deployer, network, accounts) {
   deployer.deploy(Ownable);
   deployer.deploy(Destructible);
   deployer.deploy(Administerable);

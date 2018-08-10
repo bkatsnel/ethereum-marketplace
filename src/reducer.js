@@ -10,6 +10,7 @@ import purchaseReducer from './user/purchaseReducer'
 import withdrawalReducer from './user/withdrawalReducer'
 import ensReducer from './user/ensReducer'
 import web3Reducer from './util/web3/web3Reducer'
+import priceReducer from './user/priceReducer';
 
 const reducer = combineReducers({
   routing: routerReducer,
@@ -22,6 +23,7 @@ const reducer = combineReducers({
   purchases: purchaseReducer,
   withdrawals: withdrawalReducer,
   ens: ensReducer,
+  price: priceReducer,
   web3: web3Reducer
 })
 

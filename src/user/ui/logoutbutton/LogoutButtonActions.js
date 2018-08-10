@@ -7,6 +7,7 @@ export const CLEAR_STORES = 'CLEAR_STORES'
 export const CLEAR_PRODUCTS = 'CLEAR_PRODUCTS'
 export const CLEAR_PURCHASES = 'CLEAR_PURCHASES'
 export const CLEAR_ENS = 'CLEAR_ENS'
+export const CLEAR_PRICE = 'CLEAR_PRICE'
 
 function userLoggedOut(user) {
   return {
@@ -51,6 +52,12 @@ function clearEns() {
   }
 }
 
+function clearPrice() {
+  return {
+    type: CLEAR_PRICE
+  }
+}
+
 export function logoutUser() {
   return function(dispatch) {
     // Logout user.
@@ -60,6 +67,7 @@ export function logoutUser() {
     dispatch(clearProducts())
     dispatch(clearPurchases())
     dispatch(clearEns())
+    dispatch(clearPrice())
     dispatch(userLoggedOut())
     // Redirect home.
     return browserHistory.push('/')

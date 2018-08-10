@@ -69,7 +69,9 @@
     "start": "node scripts/start.js",
     "dev": "lite-server",
     "build": "node scripts/build.js",
-    "test": "node scripts/test.js --env=jsdom"
+    "test": "node scripts/test.js --env=jsdom",
+    "ens": "truffle exec scripts/ens.js -n olmarket -a 2",
+    "bridge": "cd ethereum-bridge && node bridge -a 9 -H 127.0.0.1 -p 9545"
   },
   "jest": {
     "collectCoverageFrom": [

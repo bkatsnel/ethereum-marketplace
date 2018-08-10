@@ -10,7 +10,7 @@ module.exports = function(deployer, network, accounts) {
   let owner = accounts[0]
   let tld = "eth"
 
-  let web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
+  let web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:9545"));
 
   deployer.then(() => {
 
