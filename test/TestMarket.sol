@@ -2,28 +2,33 @@ pragma solidity ^0.4.21;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
-import "../contracts/Administerable.sol";
+import "../contracts/MarketManager.sol";
+import "../contracts/Market.sol";
 import "../contracts/EternalStorage.sol";
 
-contract TestAdministerable {
+contract TestMarket {
 
-    Administerable administerable;
+    MarketManager manager;
+    Market market;
     EternalStorage eternalStorage;
 
-    address myStorage = new EternalStorage();
+    // function beforeEach() public {
+    //     administerable = new Administerable(myStorage);
+    // }
 
-    function beforeEach() public {
-        administerable = new Administerable(myStorage);
-    }
-
-    function afterEach() public {
-        administerable.destroy();
-    }
+    // function afterEach() public {
+    //     administerable.destroy();
+    // }
 
     function testInitState() public {
 
-        uint state = uint(administerable.getState());
-        uint active = uint(Administerable.State.Active);
+        manager = new MarketManager();
+
+        manager.deployMarketContract();
+        market = Market(manager.getDeployedMarketContract());
+
+        uint state = uint(market.getState());
+        uint active = uint(Market.State.Active);
 
         Assert.equal(state, active, "Initial contract state should be active.");
 

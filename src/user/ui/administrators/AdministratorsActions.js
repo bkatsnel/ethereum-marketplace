@@ -1,4 +1,6 @@
-import OnlineMarketplaceContract from '../../../../build/contracts/OnlineMarketplace.json'
+import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
+import MarketContract from '../../../../build/contracts/Market.json'
+
 import store from '../../../store'
 
 const contract = require('truffle-contract')
@@ -56,9 +58,12 @@ export function addAdministrator(admin) {
   if (typeof web3 !== 'undefined') {
 
     return function(dispatch) {
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const Market = contract(MarketContract)
+      Market.setProvider(web3.currentProvider)
 
       // Get current ethereum admin.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -69,9 +74,10 @@ export function addAdministrator(admin) {
 
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          let manager = await MarketMgr.deployed();
+          let market_address = await manager.getDeployedMarketContract.call({from: coinbase})
           // Attempt to sign up user.
-          await instance.addAdministrator(admin, {from: coinbase})
+          await Market.at(market_address).addAdministrator(admin, {from: coinbase})
           // If no error, login user.
           return dispatch(startAdministratorWatch())
 
@@ -79,6 +85,7 @@ export function addAdministrator(admin) {
           // If error...
           console.error(error)
         }
+
       })
     }
 
@@ -100,9 +107,11 @@ export function watchAdministrators() {
 
     return function(dispatch) {
 
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const Market = contract(MarketContract)
+      Market.setProvider(web3.currentProvider)
 
       // Get current ethereum admin.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -115,18 +124,19 @@ export function watchAdministrators() {
 
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          let manager = await MarketMgr.deployed();
+          let market_address = await manager.getDeployedMarketContract.call({from: coinbase})
           // If from Block is 0 get contrat created block
           if (fromBlock === 0) {
 
-              let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+              let contractBlock = await manager.getBlockCreated.call({from: coinbase})
               fromBlock = contractBlock.toNumber()
               dispatch(setAdministratorBlock({ "block": fromBlock}))
               console.log("Admnistrators From Block Set to ", fromBlock)
 
           }
           // Define Event
-          let addAdminEvent = instance.LogAddAdministrator({}, {fromBlock: fromBlock, toBlock: 'latest'})
+          let addAdminEvent = Market.at(market_address).LogAddAdministrator({}, {fromBlock: fromBlock, toBlock: 'latest'})
   
           // Watch Event
           addAdminEvent.watch((error, result) => {
@@ -176,9 +186,11 @@ export function getAdministrators() {
 
     return function(dispatch) {
 
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const Market = contract(MarketContract)
+      Market.setProvider(web3.currentProvider)
 
       // Get current ethereum admin.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -190,18 +202,19 @@ export function getAdministrators() {
         dispatch(startAdministratorLoad())
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          let manager = await MarketMgr.deployed();
+          let market_address = await manager.getDeployedMarketContract.call({from: coinbase})
           // If from Block is 0 get contrat created block
           if (fromBlock === 0) {
 
-              let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+              let contractBlock = await manager.getBlockCreated.call({from: coinbase})
               fromBlock = contractBlock.toNumber()
               dispatch(setAdministratorBlock({ "block": fromBlock}))
               console.log("Admnistrators From Block Set to ", fromBlock)
 
           }
-          // Define Event
-          let addAdminEvent = instance.LogAddAdministrator({}, {fromBlock: fromBlock, toBlock: 'latest'})
+          // Define Events
+          let addAdminEvent = Market.at(market_address).LogAddAdministrator({}, {fromBlock: fromBlock, toBlock: 'latest'})
           // Get Results
           addAdminEvent.get((error, results) => {
 

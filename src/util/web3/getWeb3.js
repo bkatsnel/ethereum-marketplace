@@ -19,14 +19,14 @@ let getWeb3 = new Promise(function(resolve, reject) {
     if (typeof web3 !== 'undefined') {
       // Use Mist/MetaMask's provider.
       web3 = new Web3(web3.currentProvider)
+      console.log('Injected web3 detected.');
 
       results = {
         web3Instance: web3
       }
 
-      console.log('Injected web3 detected.');
+      return resolve(store.dispatch(web3Initialized(results)))
 
-      resolve(store.dispatch(web3Initialized(results)))
     } else {
 
       // Fallback to localhost if no web3 injection. We've configured this to
@@ -34,16 +34,18 @@ let getWeb3 = new Promise(function(resolve, reject) {
       var provider = new Web3.providers.HttpProvider('http://127.0.0.1:9545')
 
       web3 = new Web3(provider)
+      console.log('No web3 instance injected, using Local web3.');
 
       results = {
         web3Instance: web3
       }
 
-      console.log('No web3 instance injected, using Local web3.');
+      return resolve(store.dispatch(web3Initialized(results)))
 
-      resolve(store.dispatch(web3Initialized(results)))
     }
-  })
-})
 
+  })
+
+})
+  
 export default getWeb3

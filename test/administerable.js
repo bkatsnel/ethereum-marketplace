@@ -1,14 +1,17 @@
 var Administerable = artifacts.require("./Administerable.sol")
+var EternalStorage = artifacts.require("./EternalStorage.sol")
+
 const truffleAssert = require('truffle-assertions')
 
 contract('Administerable', function(accounts) {
 
-  let AdministerableInstance
+  let AdministerableInstance, eternalStorage
   const ownerAcct = accounts[0]
   const adminAcct = accounts[1]
 
   beforeEach(async () => {
-    AdministerableInstance = await Administerable.new({from: ownerAcct})
+    eternalStorage = await EternalStorage.new({from: ownerAcct})
+    AdministerableInstance = await Administerable.new(eternalStorage.address, {from: ownerAcct})
     assert.equal(web3.eth.getBalance(AdministerableInstance.address).toNumber(), 0)
   })
 

@@ -10,7 +10,7 @@ const initialState = {
   
   const priceReducer = (state = initialState, action) => {
   
-    console.log('Price Reducer', action)
+    // console.log('Price Reducer', action)
 
     if (action.type === 'CLEAR_PRICE') {
       return {

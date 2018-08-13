@@ -9,7 +9,7 @@ const initialState = {
   
   const purchaseReducer = (state = initialState, action) => {
   
-    console.log("Purchases Reducer Action", action.type)
+    // console.log("Purchases Reducer Action", action.type)
 
     if (action.type === 'CLEAR_PURCHASES') {
       return {

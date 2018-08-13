@@ -28,7 +28,7 @@ const AddAdminForm = ({admins, loading, loaded, watch, onAdd=f=>f, onWatch=f=>f,
         <fieldset>
           <label htmlFor="name">Provide Administrator Information</label>
           <br />
-          <input id="address" type="text" ref={input => _address = input} placeholder="Address" required />
+          <input id="address" type="text" ref={input => _address = input} placeholder="Address" size={50} required />
           <span className="pure-form-message">This is a required field.</span>
           <br />
           <button type="submit" className="pure-button pure-button-primary">Add Admin</button>

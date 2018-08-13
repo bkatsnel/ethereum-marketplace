@@ -11,8 +11,9 @@ import App from './App'
 import Home from './layouts/home/Home'
 import Dashboard from './layouts/dashboard/Dashboard'
 import SignUp from './user/layouts/signup/SignUp'
-import Profile from './user/layouts/profile/Profile'
+// import Profile from './user/layouts/profile/Profile'
 import Administrators from './user/layouts/administrators/Administrators'
+import Deploy from './user/layouts/deploy/Deploy'
 import Owners from './user/layouts/owners/Owners'
 import Stores from './user/layouts/stores/Stores'
 import Products from './user/layouts/products/Products'
@@ -52,8 +53,9 @@ render((
           <IndexRoute component={Home} />
           <Route path="dashboard" component={UserIsAuthenticated(Dashboard)} />
           <Route path="signup" component={UserIsNotAuthenticated(SignUp)} />
-          <Route path="profile" component={UserIsAuthenticated(Profile)} />
+          {/* <Route path="profile" component={UserIsAuthenticated(Profile)} /> */}
           <Route path="administrators" component={UserIsAdministrator(Administrators)} />
+          <Route path="deploy" component={UserIsAdministrator(Deploy)} />
           <Route path="owners" component={UserIsAdministrator(Owners)} />
           <Route path="ipfsstatus" component={UserIsAdministrator(IpfsStatus)} />
           <Route path="ensaddresses" component={UserIsAdministrator(ensAddresses)} />

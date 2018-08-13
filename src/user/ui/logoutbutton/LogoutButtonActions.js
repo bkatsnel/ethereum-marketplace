@@ -8,6 +8,7 @@ export const CLEAR_PRODUCTS = 'CLEAR_PRODUCTS'
 export const CLEAR_PURCHASES = 'CLEAR_PURCHASES'
 export const CLEAR_ENS = 'CLEAR_ENS'
 export const CLEAR_PRICE = 'CLEAR_PRICE'
+export const CLEAR_WEB3_CONTRACTS = 'CLEAR_WEB3_CONTRACTS'
 
 function userLoggedOut(user) {
   return {
@@ -58,6 +59,12 @@ function clearPrice() {
   }
 }
 
+function clearWeb3Contracts() {
+  return {
+    type: CLEAR_WEB3_CONTRACTS
+  }
+}
+
 export function logoutUser() {
   return function(dispatch) {
     // Logout user.
@@ -68,6 +75,7 @@ export function logoutUser() {
     dispatch(clearPurchases())
     dispatch(clearEns())
     dispatch(clearPrice())
+    dispatch(clearWeb3Contracts())
     dispatch(userLoggedOut())
     // Redirect home.
     return browserHistory.push('/')
