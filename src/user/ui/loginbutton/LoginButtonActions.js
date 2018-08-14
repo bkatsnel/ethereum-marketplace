@@ -1,8 +1,9 @@
 import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
 import MarketContract from '../../../../build/contracts/Market.json'
+import StoreOwnersContract from '../../../../build/contracts/StoreOwners.json'
 import { browserHistory } from 'react-router'
 import store from '../../../store'
-// import ipfsAPI from 'ipfs-api'
+import ipfsAPI from 'ipfs-api'
 
 const contract = require('truffle-contract')
 
@@ -29,12 +30,16 @@ export function loginUser() {
       const Market = contract(MarketContract)
       Market.setProvider(web3.currentProvider)
 
+      const StoreOwners = contract(StoreOwnersContract)
+      StoreOwners.setProvider(web3.currentProvider)
+
       // Get current ethereum wallet.
       web3.eth.getCoinbase(async (error, coinbase) => {
 
           let manager = await MarketMgr.deployed();
           let mgrOwner = await manager.owner.call({from: coinbase})
           let market_address = await manager.getDeployedMarketContract.call({from: coinbase})
+          let owners_address = await manager.getDeployedStoreOwnersContract.call({from: coinbase})
 
           // console.log("Manager Owner", mgrOwner, coinbase)
           // console.log("Market Address", market_address)
@@ -54,8 +59,7 @@ export function loginUser() {
                 // Attempt to login user.
                 let result = await market.login({from: coinbase})
                 console.log("Login Result", result)
-                let userName, payload
-                // let id, userName, homeAddress, balance, orders, withdrawals, payload, ipfs
+                let id, userName, homeAddress, balance, orders, withdrawals, payload, ipfs
                 let userType=web3.toUtf8(result)
 
                 console.log(web3.toUtf8(result));
@@ -67,20 +71,21 @@ export function loginUser() {
                       payload = {"name": userName, "type": userType, "address": coinbase}
                       break
 
-                  // case "owner":
-                  //     let ownerInfo = await instance.getOwnerInfo.call({from: coinbase});
-                  //     id = ownerInfo[0].toNumber()
-                  //     userName = web3.toUtf8(ownerInfo[1])
-                  //     balance = ownerInfo[2].toNumber()
-                  //     withdrawals = ownerInfo[3].toNumber()
-                  //     // Add IPFS Connection
-                  //     ipfs = ipfsAPI('localhost', '5001')
-                  //     // Create OWner user payload
-                  //     payload = {
-                  //       "name": userName, "type": userType, "address": coinbase,
-                  //       "id": id, "balance": balance,  "withdrawals": withdrawals, "ipfs": ipfs
-                  //     }
-                  //     break
+                  case "owner":
+                      let ownerInfo = await StoreOwners.at(owners_address).getStoreOwner.call(coinbase, {from: coinbase});
+                      id = ownerInfo[0].toNumber()
+                      userName = web3.toUtf8(ownerInfo[1])
+                      balance = ownerInfo[2].toNumber()
+                      withdrawals = ownerInfo[3].toNumber()
+                      orders = ownerInfo[4].toNumber()
+                      // Add IPFS Connection
+                      ipfs = ipfsAPI('localhost', '5001')
+                      // Create OWner user payload
+                      payload = {
+                        "name": userName, "type": userType, "address": coinbase,
+                        "id": id, "balance": balance,  "withdrawals": withdrawals, orders: orders, "ipfs": ipfs
+                      }
+                      break
 
                   // case "customer":
                   //     let customerInfo = await instance.getCustomerInfo.call({from: coinbase});

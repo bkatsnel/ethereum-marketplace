@@ -2,7 +2,6 @@ pragma solidity ^0.4.21;
 
 import "./EternalStorage.sol";
 import "./SecurityLibrary.sol";
-import "./SecurityLibrary.sol";
 import "./zeppelin/ownership/Ownable.sol";
 
 contract Market is Ownable {
@@ -52,6 +51,10 @@ contract Market is Ownable {
         EternalStorage(eternalStorage).transferOwnership(market);
     }
 
+    function addStorageOwner(address owner) public OnlyAdministrator {
+        EternalStorage(eternalStorage).addOwner(owner);
+    }
+
     // Login and Sign Up Functions
 
     function login() public view Active returns (bytes32) { 
@@ -71,6 +74,10 @@ contract Market is Ownable {
     function unlock() public Locked OnlyAdministrator {
         state = State.Active;
         emit LogUnLockContractAction(msg.sender, this, state);
+    }
+
+    function destroy(address _newMarket) public OnlyAdministrator {
+        selfdestruct(_newMarket);
     }
 
     // Administrator Functions

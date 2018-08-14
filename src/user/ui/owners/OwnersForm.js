@@ -30,7 +30,7 @@ const AddOwnerForm = ({loading, loaded, owners, watch, onAdd=f=>f, onGet=f=>f, o
           <label htmlFor="name">Provide Owner Information</label>
           <br />
           <input id="name" type="text" ref={input => _name = input} placeholder="Name" required/>
-          <input id="address" type="text" ref={input => _address = input} placeholder="Address" required />
+          <input id="address" type="text" ref={input => _address = input} placeholder="Account Address" size={50} required />
           <span className="pure-form-message">These are required fields.</span>
           <br />
           <button type="submit" className="pure-button pure-button-primary">Add Owner</button>

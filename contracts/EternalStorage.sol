@@ -5,11 +5,29 @@ import "./zeppelin/ownership/Ownable.sol";
 contract EternalStorage is Ownable {
 
     uint private blockCreated = block.number;
+    mapping (address => bool) owners;
+
+   
+
+    // Modifiers
+
+    modifier OnlyOwners {
+        require(owners[msg.sender] || owner == msg.sender,"Only owners can perform this function.");
+        _;
+    }
 
     constructor() public {
 
     }
 
+    ////////////
+    // Add Owner
+    ////////////
+
+    function addOwner(address owner) public onlyOwner {
+        owners[owner] = true;
+    }
+    
     ////////////
     //UInt
     ////////////
@@ -20,11 +38,11 @@ contract EternalStorage is Ownable {
         return UIntStorage[record];
     }
 
-    function setUIntValue(bytes32 record, uint value) public onlyOwner {
+    function setUIntValue(bytes32 record, uint value) public OnlyOwners {
         UIntStorage[record] = value;
     }
 
-    function deleteUIntValue(bytes32 record) public onlyOwner {
+    function deleteUIntValue(bytes32 record) public OnlyOwners {
         delete UIntStorage[record];
     }
 
@@ -38,11 +56,11 @@ contract EternalStorage is Ownable {
         return StringStorage[record];
     }
 
-    function setStringValue(bytes32 record, string value) public onlyOwner {
+    function setStringValue(bytes32 record, string value) public OnlyOwners {
         StringStorage[record] = value;
     }
 
-    function deleteStringValue(bytes32 record) public onlyOwner {
+    function deleteStringValue(bytes32 record) public OnlyOwners {
         delete StringStorage[record];
     }
 
@@ -56,11 +74,11 @@ contract EternalStorage is Ownable {
         return AddressStorage[record];
     }
 
-    function setAddressValue(bytes32 record, address value) public onlyOwner {
+    function setAddressValue(bytes32 record, address value) public OnlyOwners {
         AddressStorage[record] = value;
     }
 
-    function deleteAddressValue(bytes32 record) public onlyOwner {
+    function deleteAddressValue(bytes32 record) public OnlyOwners {
         delete AddressStorage[record];
     }
 
@@ -74,11 +92,11 @@ contract EternalStorage is Ownable {
         return BytesStorage[record];
     }
 
-    function setBytesValue(bytes32 record, bytes value) public onlyOwner {
+    function setBytesValue(bytes32 record, bytes value) public OnlyOwners {
         BytesStorage[record] = value;
     }
 
-    function deleteBytesValue(bytes32 record) public onlyOwner {
+    function deleteBytesValue(bytes32 record) public OnlyOwners {
         delete BytesStorage[record];
     }
 
@@ -92,11 +110,11 @@ contract EternalStorage is Ownable {
         return Bytes32Storage[record];
     }
 
-    function setBytes32Value(bytes32 record, bytes32 value) public onlyOwner {
+    function setBytes32Value(bytes32 record, bytes32 value) public OnlyOwners {
         Bytes32Storage[record] = value;
     }
 
-    function deleteBytes32Value(bytes32 record) public onlyOwner {
+    function deleteBytes32Value(bytes32 record) public OnlyOwners {
         delete Bytes32Storage[record];
     }
 
@@ -110,11 +128,11 @@ contract EternalStorage is Ownable {
         return BooleanStorage[record];
     }
 
-    function setBooleanValue(bytes32 record, bool value) public onlyOwner {
+    function setBooleanValue(bytes32 record, bool value) public OnlyOwners {
         BooleanStorage[record] = value;
     }
 
-    function deleteBooleanValue(bytes32 record) public onlyOwner {
+    function deleteBooleanValue(bytes32 record) public OnlyOwners {
         delete BooleanStorage[record];
     }
 
@@ -127,11 +145,11 @@ contract EternalStorage is Ownable {
         return IntStorage[record];
     }
 
-    function setIntValue(bytes32 record, int value) public onlyOwner {
+    function setIntValue(bytes32 record, int value) public OnlyOwners {
         IntStorage[record] = value;
     }
 
-    function deleteIntValue(bytes32 record) public onlyOwner {
+    function deleteIntValue(bytes32 record) public OnlyOwners {
         delete IntStorage[record];
     }
 
@@ -139,6 +157,10 @@ contract EternalStorage is Ownable {
 
     function getBlockCreated() public view returns (uint) {
         return blockCreated;
+    }
+
+    function isStorageOwner(address owner) public view returns (bool) {
+        return owners[owner];
     }
    
 }

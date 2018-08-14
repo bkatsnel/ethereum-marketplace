@@ -1,11 +1,11 @@
-import OnlineMarketplaceContract from '../../../../build/contracts/OnlineMarketplace.json'
+import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
+import StoreOwnersContract from '../../../../build/contracts/StoreOwners.json'
 // import { browserHistory } from 'react-router'
 import store from '../../../store'
 
 const contract = require('truffle-contract')
 
 export const ADD_OWNER = 'ADD_OWNER'
-export const INIT_OWNERS = 'INIT_OWNERS'
 export const START_LOADING_OWNERS = 'START_LOADING_OWNERS'
 export const END_LOADING_OWNERS = 'END_LOADING_OWNERS'
 export const SET_OWNERS_BLOCK = 'SET_OWNERS_BLOCK'
@@ -50,13 +50,6 @@ function endWatchingOwners() {
   }
 }
 
-function initStoreOwners(owners) {
-  return {
-    type: INIT_OWNERS,
-    payload: owners
-  }
-}
-
 export function addOwner(address, name) {
   let web3 = store.getState().web3.web3Instance
   //Debug COde
@@ -65,10 +58,12 @@ export function addOwner(address, name) {
   if (typeof web3 !== 'undefined') {
 
     return function(dispatch) {
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
 
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const StoreOwners = contract(StoreOwnersContract)
+      StoreOwners.setProvider(web3.currentProvider)
 
       // Get current ethereum wallet.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -79,9 +74,10 @@ export function addOwner(address, name) {
 
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed()
+          let manager = await MarketMgr.deployed();
+          let owners_address = await manager.getDeployedStoreOwnersContract.call({from: coinbase})
           // Attempt to sign up user.
-          await instance.addStoreOwner(address, name, {from: coinbase})
+          await StoreOwners.at(owners_address).addStoreOwner(address, name, {from: coinbase})
           // If no error, login user.
           return dispatch(startWatchingOwners())
 
@@ -100,87 +96,6 @@ export function addOwner(address, name) {
   }
 }
 
-export function getOwnersInfoAsArrays() {
-
-  console.log("Get Array Info")
-
-  let web3 = store.getState().web3.web3Instance
-  let addedOwnerNo = store.getState().ens.ownerNo
-
-  // Double-check web3's status.
-  if (typeof web3 !== 'undefined') {
-      
-    return function(dispatch) {
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
-
-      // Get current ethereum wallet.
-      web3.eth.getCoinbase(async(error, coinbase) => {
-
-        if (error) {
-          console.error(error)
-        }
-
-        let instance = await marketplace.deployed()
-
-        dispatch(startLoadingOwners())
-
-        try {
-
-          let ownerNo = await instance.getOwnerNo.call({from: coinbase})
-
-          if (ownerNo.toNumber() > 0 || addedOwnerNo > 0) {
-
-              let offset = 0 
-              let storeOwnersArrays  = await instance.getStoreOwnersArray.call(offset, {from: coinbase})
-
-              console.log(storeOwnersArrays)
-
-              // Get Admin No 
-              let arrLen = storeOwnersArrays[0].filter((bigNumber) => bigNumber.toNumber() !== 0).length
-              let storeOwners = [arrLen]
-              
-              for (let i = 0; i < arrLen; i++) {
-
-                  storeOwners[i] =  {
-                    "id": storeOwnersArrays[0][i].toNumber(),
-                      "name": web3.toUtf8(storeOwnersArrays[1][i]),
-                      "balance":storeOwnersArrays[2][i].toNumber(),
-                      "stores": storeOwnersArrays[3][i].toNumber()
-                  }
-
-              }
-          
-              console.log(storeOwners)
-              //  Return Arrays
-              dispatch(initStoreOwners(storeOwners))
-
-
-          } else {
-              // If No owners to load
-              console.log("No owners have been created yet")
-              dispatch(endLoadingOwners())
-
-          }
-
-        } catch(err) {
-
-          console.error(err)
-
-        }
-
-      })
-    }
-      
-  } else {
-
-    console.error('Web3 is not initialized.')
-
-  }
-
-}
-
 export function watchOwners() {
 
   let web3 = store.getState().web3.web3Instance
@@ -191,9 +106,13 @@ export function watchOwners() {
   if (typeof web3 !== 'undefined') {
 
     return function(dispatch) {
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const StoreOwners = contract(StoreOwnersContract)
+      StoreOwners.setProvider(web3.currentProvider)
+
       // Get current ethereum admin.
       web3.eth.getCoinbase(async (error, coinbase) => {
         // Log errors, if any.
@@ -203,20 +122,21 @@ export function watchOwners() {
 
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          let manager = await MarketMgr.deployed();
+          let owners_address = await manager.getDeployedStoreOwnersContract.call({from: coinbase})
           // Indicate Load Start
           dispatch(startWatchingOwners())
           // If from Block is 0 get contrat created block
           if (fromBlock === 0 || fromBlock === undefined) {
 
-            let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+            let contractBlock = await manager.getBlockCreated.call({from: coinbase})
             fromBlock = contractBlock.toNumber();
             dispatch(setOwnersrBlock({ "block": fromBlock}))
             console.log("Owners From Block Set to ", fromBlock)
 
           }
           // Define Event
-          let addOwnerEvent = instance.LogAddStoreOwner({}, {fromBlock: fromBlock, toBlock: 'latest'})
+          let addOwnerEvent = StoreOwners.at(owners_address).LogAddStoreOwner({}, {fromBlock: fromBlock, toBlock: 'latest'})
           // Watch Event
           addOwnerEvent.watch((error, result) => {
             // Log errors, if any.
@@ -264,9 +184,12 @@ export function getOwners() {
   if (typeof web3 !== 'undefined') {
 
     return function(dispatch) {
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const StoreOwners = contract(StoreOwnersContract)
+      StoreOwners.setProvider(web3.currentProvider)
       // Get current ethereum admin.
       web3.eth.getCoinbase(async (error, coinbase) => {
         // Log errors, if any.
@@ -276,20 +199,21 @@ export function getOwners() {
 
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          let manager = await MarketMgr.deployed();
+          let owners_address = await manager.getDeployedStoreOwnersContract.call({from: coinbase})
           // Indicate Load Start
           dispatch(startLoadingOwners())
           // If from Block is 0 get contrat created block
           if (fromBlock === 0 || fromBlock === undefined) {
 
-            let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+            let contractBlock = await manager.getBlockCreated.call({from: coinbase})
             fromBlock = contractBlock.toNumber();
             dispatch(setOwnersrBlock({ "block": fromBlock}))
             console.log("Owners From Block Set to ", fromBlock)
 
           }
           // Define Event
-          let addOwnerEvent = instance.LogAddStoreOwner({}, {fromBlock: fromBlock, toBlock: 'latest'})
+          let addOwnerEvent = StoreOwners.at(owners_address).LogAddStoreOwner({}, {fromBlock: fromBlock, toBlock: 'latest'})
           // Watch Event
           addOwnerEvent.get((error, results) => {
             // Log errors, if any.

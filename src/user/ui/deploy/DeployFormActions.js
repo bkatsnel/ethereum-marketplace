@@ -133,44 +133,61 @@ export function deployMarket() {
     }
 
 }
-    // const marketManager = contract(MarketManagerContract)
-    // marketManager.setProvider(web3.currentProvider)
 
-    // const marketContract = contract(MarketContract)
-    // marketContract.setProvider(web3.currentProvider)
+export function deployStoreOwners() {
 
-    // let coinbase, manager
+    let web3 = store.getState().web3.web3Instance
+    let fromBlock = store.getState().web3.block
+    //Debug Code
+    console.log("Deploy Store Owners Contract")
+    // Double-check web3's status.
+    if (typeof web3 !== 'undefined') {
 
-    // web3.eth.getCoinbase((error, _coinbase) => {
+        return function(dispatch) {
 
-    //   // Log errors, if any.
-    //   if (error) {
-    //     console.error(error);
-    //   }
+            const marketManager = contract(MarketManagerContract)
+            marketManager.setProvider(web3.currentProvider)
 
-    //   console.log("Coinbase", _coinbase)
-    //   coinbase = _coinbase
-    //   marketManager.deployed().then((_manager) => {
-    //     manager = _manager
-    //     console.log("Manager", manager.address)
-    //     manager.deployMarketContract({from: coinbase})
-    //     .then((tx) => {
-    //        console.log("deployed", tx)
-    //        manager.getDeplyedMarketContract.call({from: coinbase})
-    //     .then((market) => {
-    //       results = {
-    //         web3Instance: web3,
-    //         manager: manager,
-    //         market: market,
-    //         coinbase: coinbase
-    //       }
-    //       console.log(results)
-    //       return resolve(store.dispatch(web3Initialized(results)))
-    //     })
-    //     .catch((error) => {
-    //       console.error(error)
-    //     })
-    //     })
-    //   })
-    // })
+            // Get current ethereum name.
+            web3.eth.getCoinbase(async (error, coinbase) => {
+                // Indicate Load Start
+                dispatch(startManagerLoad())
+
+                try { 
+
+                    let manager = await marketManager.deployed();
+
+                    await manager.deployStoreOwnersContract({from: coinbase})
+
+                    let storeOwnersContractDeployed = manager.StoreOwnersContractDeployed({}, {fromBlock: fromBlock, toBlock: 'latest'})
+
+                    storeOwnersContractDeployed.watch((error, result) => {
+
+                        // Log errors, if any.
+                        if (error) {
+                            console.error(error);
+                        }
+                    
+                        let payload = {
+                            owners: result.args.owners,
+                        }
+    
+                        console.log("Store Owners Contract", payload)
+                        dispatch(updateWeb3Info(payload))
+                        return dispatch(endManagerLoad())
+    
+                    })
+
+                } catch(error) {
+
+                    console.error(error)
+
+                }
+
+            })
+        }
+    }
+
+}
+   
 

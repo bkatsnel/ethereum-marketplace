@@ -3,6 +3,7 @@ const initialState = {
   manager: "",
   market: "",
   storage: "",
+  owners: "",
   loading: false,
   block: 0
 }
