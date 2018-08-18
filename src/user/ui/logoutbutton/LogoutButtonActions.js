@@ -8,6 +8,7 @@ export const CLEAR_PRODUCTS = 'CLEAR_PRODUCTS'
 export const CLEAR_PURCHASES = 'CLEAR_PURCHASES'
 export const CLEAR_ENS = 'CLEAR_ENS'
 export const CLEAR_PRICE = 'CLEAR_PRICE'
+export const CLEAR_WITHDRAWALS = 'CLEAR_WITHDRAWALS'
 export const CLEAR_WEB3_CONTRACTS = 'CLEAR_WEB3_CONTRACTS'
 
 function userLoggedOut(user) {
@@ -47,6 +48,12 @@ function clearPurchases() {
   }
 }
 
+function clearWithdrawals() {
+  return {
+    type: CLEAR_WITHDRAWALS
+  }
+}
+
 function clearEns() {
   return {
     type: CLEAR_ENS
@@ -73,6 +80,7 @@ export function logoutUser() {
     dispatch(clearStores())
     dispatch(clearProducts())
     dispatch(clearPurchases())
+    dispatch(clearWithdrawals())
     dispatch(clearEns())
     dispatch(clearPrice())
     dispatch(clearWeb3Contracts())

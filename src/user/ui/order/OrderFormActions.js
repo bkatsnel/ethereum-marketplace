@@ -1,4 +1,5 @@
-import OnlineMarketplaceContract from '../../../../build/contracts/OnlineMarketplace.json'
+import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
+import CustomersContract from '../../../../build/contracts/Customers.json'
 import store from '../../../store'
 
 const contract = require('truffle-contract')
@@ -28,9 +29,13 @@ export function placeOrder(name, id, quantity, price, description) {
   if (typeof web3 !== 'undefined') {
 
     return function(dispatch) {
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+
+      // Using truffle-contract we create the market manager object.
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const Customers = contract(CustomersContract)
+      Customers.setProvider(web3.currentProvider)
 
       // Get current ethereum name.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -40,12 +45,13 @@ export function placeOrder(name, id, quantity, price, description) {
         }
       
         try { 
-          //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          //Get Deployed Market Manager Contract Instance
+          let manager = await MarketMgr.deployed();
+          let customers_address = await manager.getDeployedCustomersContract.call({from: coinbase})
           // Calculate Cost And Add Extra 10
           let payment = quantity * price;
           // Attempt to sign up user.
-          await instance.placeOrder(name, id, quantity, price, description, {value: payment, from: coinbase})
+          await Customers.at(customers_address).placeOrder(name, id, quantity, price, description, {value: payment, from: coinbase})
           // Retrun Start Watch
           return dispatch(setPurchasesRefresh())
 
@@ -53,7 +59,9 @@ export function placeOrder(name, id, quantity, price, description) {
           // If error...
           console.error(error)
         }
+
       })
+      
     }
 
   } else {

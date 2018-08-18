@@ -1,4 +1,6 @@
-import OnlineMarketplaceContract from '../../../../build/contracts/OnlineMarketplace.json'
+import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
+import StoresContract from '../../../../build/contracts/Stores.json'
+// import CustomersContract from '../../../../build/contracts/Customers.json'
 import store from '../../../store'
 import { bytes32ToIPFSHash } from '../../../util/ipfsFuncs'
 
@@ -47,8 +49,11 @@ export function watchStores() {
     return function(dispatch) {
 
       // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const Stores = contract(StoresContract)
+      Stores.setProvider(web3.currentProvider)
 
       // Get current ethereum name.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -61,18 +66,20 @@ export function watchStores() {
 
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          let manager = await MarketMgr.deployed();
+          let stores_address = await manager.getDeployedStoresContract.call({from: coinbase})
+          // Create IPFS File And Store its hash 
           // If from Block is 0 get contrat created block
           if (fromBlock === 0) {
 
-              let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+              let contractBlock = await manager.getBlockCreated.call({from: coinbase})
               fromBlock = contractBlock.toNumber()
               dispatch(setStoresBlock({ "block": fromBlock}))
               console.log("Shops From Block Set to ", fromBlock)
 
           }
           // Define Event
-          let addStoresEvent = instance.LogAddStore({}, {fromBlock: fromBlock, toBlock: 'latest'})
+          let addStoresEvent = Stores.at(stores_address).LogAddStore({}, {fromBlock: fromBlock, toBlock: 'latest'})
           // Watch Event
           addStoresEvent.watch((error, result) => {
             // Log errors, if any.

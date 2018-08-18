@@ -95,7 +95,8 @@ contract Customers is ICustomers {
         bytes32 _description;
 
         uint cost = quantity.mul(price);
-
+        uint work;
+// 
         (_id, _quantity, _price, _description) = Stores.getStoreProduct(name, id);
 
         require(_quantity >= quantity, "Order quantity should not exceed available quanity.");
@@ -108,10 +109,15 @@ contract Customers is ICustomers {
         // Chck if more money was send and update balance if required
 
         if (msg.value > cost) { 
-            uint customer_balance = eStorage.getUIntValue(keccak256("customer_balance:", msg.sender));
-            customer_balance += msg.value - cost;
-            eStorage.setUIntValue(keccak256("customer_balance:", msg.sender), customer_balance);
+            // Update Balance - Used work to avoid stack too deep problem
+            work = eStorage.getUIntValue(keccak256("customer_balance:", msg.sender));
+            work += msg.value - cost;
+            eStorage.setUIntValue(keccak256("customer_balance:", msg.sender), work);
         }
+
+        //Update Orders
+        work = eStorage.getUIntValue(keccak256("customer_orders:", msg.sender));
+        eStorage.setUIntValue(keccak256("customer_orders:", msg.sender), ++work);
 
         // Log Purchase
         emit LogCustomerOrder(name, msg.sender, owner, id, quantity, price, msg.value, now, ++orderNo);

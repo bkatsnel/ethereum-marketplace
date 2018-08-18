@@ -3,14 +3,15 @@ pragma solidity ^0.4.21;
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../contracts/MarketManager.sol";
-import "../contracts/Market.sol";
-import "../contracts/EternalStorage.sol";
+import "../contracts/IMarket.sol";
+import "../contracts/StoreOwners.sol";
+// import "../contracts/EternalStorage.sol";
 
 contract TestMarket {
 
     MarketManager manager;
-    Market market;
-    EternalStorage eternalStorage;
+    IMarket market;
+    address eternalStorage;
 
     // function beforeEach() public {
     //     administerable = new Administerable(myStorage);
@@ -20,19 +21,68 @@ contract TestMarket {
     //     administerable.destroy();
     // }
 
-    function testInitState() public {
+    function testInitMarketState() public {
 
         manager = new MarketManager();
 
         manager.deployMarketContract();
-        market = Market(manager.getDeployedMarketContract());
+        market = IMarket(manager.getDeployedMarketContract());
 
-        uint state = uint(market.getState());
-        uint active = uint(Market.State.Active);
-
-        Assert.equal(state, active, "Initial contract state should be active.");
+        bool paused = market.paused();
+        Assert.equal(paused, false, "Initial contract paused should be false.");
 
     }
+
+    function testMarketPause() public {
+
+        market.pause();
+        bool paused = market.paused();
+        Assert.equal(paused, true, "Paused contract paused should be true.");
+    }
+
+    function testMarketUnPause() public {
+
+        market.unpause();
+        bool paused = market.paused();
+        Assert.equal(paused, false, "Paused contract paused should be true.");
+    }
+
+    function testMarketManagerStorage() public {
+
+        eternalStorage = manager.getDeployedStorageContract();
+        Assert.notEqual(eternalStorage, address(0), "Market Manager storage address should be set.");
+
+    }
+
+    function testMarketStorage() public {
+
+        address mStorage = market.getEternalStorageAddress();
+        Assert.equal(mStorage, eternalStorage, "Market storage address should be set.");
+
+    }
+
+    function testIsAdminsitrator() public {
+        
+        bool isAdmin = market.isAdministrator();
+        Assert.equal(isAdmin, true, "This msg.sender should be adminstrator.");
+    }
+
+    function testGetAdminsitrator() public {
+
+        uint id = market.getAdministrator(manager);
+        Assert.equal(id, 1, "First administrator id should be 0.");
+
+    }
+
+    function testAddAdministrator() public {
+
+        market.addAdministrator(eternalStorage);
+        uint id = market.getAdministrator(eternalStorage);
+        Assert.equal(id, 3, "Third administrator id should be 3.");
+
+    }
+
+
 
     // function testLockContract() public {
 

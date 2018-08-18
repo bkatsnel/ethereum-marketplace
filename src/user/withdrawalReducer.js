@@ -33,7 +33,7 @@ const initialState = {
       }
     }
 
-    if (action.type === 'START_LOADING_WITHDRAWALS') {
+    if (action.type === 'START_WITHDRAWALS_LOAD') {
         return {
           ...state, 
           loaded: false,
@@ -49,7 +49,7 @@ const initialState = {
         }
     }
 
-    if (action.type === 'END_LOADING_WITHDRAWALS') {
+    if (action.type === 'END_WITHDRAWALS_LOAD') {
         return {
           ...state, 
           loaded: true,

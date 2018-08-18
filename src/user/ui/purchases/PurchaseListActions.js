@@ -1,4 +1,5 @@
-import OnlineMarketplaceContract from '../../../../build/contracts/OnlineMarketplace.json'
+import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
+import CustomersContract from '../../../../build/contracts/Customers.json'
 import store from '../../../store'
 
 const contract = require('truffle-contract')
@@ -73,10 +74,12 @@ export function watchPurchases() {
   
       return function(dispatch) {
   
-        // Using truffle-contract we create the marketplace object.
-        const marketplace = contract(OnlineMarketplaceContract)
-        marketplace.setProvider(web3.currentProvider)
-  
+        // Using truffle-contract we create the market manager object.
+        const MarketMgr = contract(MarketManagerContract)
+        MarketMgr.setProvider(web3.currentProvider)
+
+        const Customers = contract(CustomersContract)
+        Customers.setProvider(web3.currentProvider)
         // Get current ethereum name.
         web3.eth.getCoinbase(async (error, coinbase) => {
           // Log errors, if any.
@@ -89,19 +92,20 @@ export function watchPurchases() {
           dispatch(startPurchasesWatch())
   
           try { 
-            //Get Deployed Marketplace Contract Instance
-            let instance = await marketplace.deployed();
+            //Get Deployed Market Manager Contract Instance
+            let manager = await MarketMgr.deployed();
+            let customers_address = await manager.getDeployedCustomersContract.call({from: coinbase})
             // If from Block is 0 get contrat created block
             if (fromBlock === 0) {
   
-                let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+                let contractBlock = await manager.getBlockCreated.call({from: coinbase})
                 fromBlock = contractBlock.toNumber()
                 dispatch(setPurchasesBlock({ "block": fromBlock}))
                 console.log("Purchases From Block Set to ", fromBlock)
   
             }
             // Define Event
-            let addPurchasesEvent = instance.LogCustomerOrder({customer: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
+            let addPurchasesEvent = Customers.at(customers_address).LogCustomerOrder({customer: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
             // Watch Event
             addPurchasesEvent.watch((err, res) => {
               // Log errors, if any.
@@ -150,9 +154,12 @@ export function getPurchases() {
 
     return function(dispatch) {
 
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+      // Using truffle-contract we create the market manager object.
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const Customers = contract(CustomersContract)
+      Customers.setProvider(web3.currentProvider)
 
       // Get current ethereum name.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -164,19 +171,20 @@ export function getPurchases() {
         dispatch(startPurchasesLoad())
 
         try { 
-          //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          //Get Deployed Market Manager Contract Instance
+          let manager = await MarketMgr.deployed();
+          let customers_address = await manager.getDeployedCustomersContract.call({from: coinbase})
           // If from Block is 0 get contrat created block
           if (fromBlock === 0) {
 
-              let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+              let contractBlock = await manager.getBlockCreated.call({from: coinbase})
               fromBlock = contractBlock.toNumber()
               dispatch(setPurchasesBlock({ "block": fromBlock}))
               console.log("Purchases From Block Set to ", fromBlock)
 
           }
           // Define Event
-          let addPurchasesEvent = instance.LogCustomerOrder({customer: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
+          let addPurchasesEvent = Customers.at(customers_address).LogCustomerOrder({customer: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
           // Watch Event
           addPurchasesEvent.get((err, results) => {
             // Log errors, if any.

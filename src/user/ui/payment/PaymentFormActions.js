@@ -1,7 +1,16 @@
-import OnlineMarketplaceContract from '../../../../build/contracts/OnlineMarketplace.json'
+import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
+import CustomersContract from '../../../../build/contracts/Customers.json'
 import store from '../../../store'
 
 const contract = require('truffle-contract')
+
+export const START_WITHDRAWALS_LOAD = 'START_WITHDRAWALS_LOAD'
+
+function startWithdrawalsLoad() {
+  return {
+    type: START_WITHDRAWALS_LOAD
+  }
+}
 
 export function withdrawBalance(name) {
   let web3 = store.getState().web3.web3Instance
@@ -11,10 +20,12 @@ export function withdrawBalance(name) {
   if (typeof web3 !== 'undefined') {
 
     return function(dispatch) {
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+      // Using truffle-contract we create the market manager object.
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
 
+      const Customers = contract(CustomersContract)
+      Customers.setProvider(web3.currentProvider)
       // Get current ethereum name.
       web3.eth.getCoinbase(async (error, coinbase) => {
         // Log errors, if any.
@@ -23,10 +34,13 @@ export function withdrawBalance(name) {
         }
 
         try { 
-          //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          //Get Deployed Market Manager Contract Instance
+          let manager = await MarketMgr.deployed();
+          let customers_address = await manager.getDeployedCustomersContract.call({from: coinbase})
           // Attempt to sign up user.
-          await instance.withdrawStoreFunds(name, {from: coinbase})
+          await Customers.at(customers_address).withdrawStoreFunds(name, {from: coinbase})
+
+          return dispatch(startWithdrawalsLoad())
 
         } catch(error) {
           // If error...

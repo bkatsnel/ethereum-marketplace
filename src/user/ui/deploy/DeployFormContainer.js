@@ -1,6 +1,6 @@
 import { connect } from 'react-redux'
 import DeployForm from './DeployForm'
-import { deployMarket, getManagerAddress, deployStoreOwners, deployStores } from './DeployFormActions'
+import { deployMarket, getManagerAddress, deployStoreOwners, deployStores, deployCustomers } from './DeployFormActions'
 
 const mapStateToProps = (state, ownProps) => {
   return {
@@ -10,6 +10,7 @@ const mapStateToProps = (state, ownProps) => {
     storage: state.web3.storage,
     owners: state.web3.owners,
     stores: state.web3.stores,
+    customers: state.web3.customers,
     loading: state.web3.loading,
   }
 }
@@ -24,6 +25,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     onStores: () => {
       dispatch(deployStores())
+    },
+    onCustomers: () => {
+      dispatch(deployCustomers())
     },
     onGetMgr: () => {
       dispatch(getManagerAddress())

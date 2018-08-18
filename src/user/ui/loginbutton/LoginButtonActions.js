@@ -1,6 +1,7 @@
 import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
 import MarketContract from '../../../../build/contracts/Market.json'
 import StoreOwnersContract from '../../../../build/contracts/StoreOwners.json'
+import CustomersContract from '../../../../build/contracts/Customers.json'
 import { browserHistory } from 'react-router'
 import store from '../../../store'
 import ipfsAPI from 'ipfs-api'
@@ -33,15 +34,20 @@ export function loginUser() {
       const StoreOwners = contract(StoreOwnersContract)
       StoreOwners.setProvider(web3.currentProvider)
 
+      const Customers = contract(CustomersContract)
+      Customers.setProvider(web3.currentProvider)
+
       // Get current ethereum wallet.
       web3.eth.getCoinbase(async (error, coinbase) => {
 
           let manager = await MarketMgr.deployed();
           let mgrOwner = await manager.owner.call({from: coinbase})
+
           let market_address = await manager.getDeployedMarketContract.call({from: coinbase})
           let owners_address = await manager.getDeployedStoreOwnersContract.call({from: coinbase})
+          let customers_address = await manager.getDeployedCustomersContract.call({from: coinbase})
 
-          // console.log("Manager Owner", mgrOwner, coinbase)
+          console.log("Manager Owner", mgrOwner, coinbase)
           // console.log("Market Address", market_address)
 
           if (mgrOwner === coinbase && market_address === "0x0000000000000000000000000000000000000000") {
@@ -87,21 +93,21 @@ export function loginUser() {
                       }
                       break
 
-                  // case "customer":
-                  //     let customerInfo = await instance.getCustomerInfo.call({from: coinbase});
-                  //     userName = web3.toUtf8(customerInfo[0])
-                  //     homeAddress = web3.toUtf8(customerInfo[1])
-                  //     balance = customerInfo[2].toNumber()
-                  //     orders = customerInfo[3].toNumber()
-                  //     withdrawals = customerInfo[4].toNumber()
-                  //     // Add IPFS Connection
-                  //     ipfs = ipfsAPI('localhost', '5001')
-                  //     // Create customer user payload
-                  //     payload = {
-                  //       "name": userName, "type": userType, "address": coinbase,
-                  //       "home": homeAddress, "balance": balance, "orders": orders, "withdrawals": withdrawals, "ipfs": ipfs
-                  //     }
-                  //     break
+                  case "customer":
+                      let customerInfo = await Customers.at(customers_address).getCustomerInfo.call({from: coinbase});
+                      userName = web3.toUtf8(customerInfo[0])
+                      homeAddress = web3.toUtf8(customerInfo[1])
+                      balance = customerInfo[2].toNumber()
+                      orders = customerInfo[3].toNumber()
+                      withdrawals = customerInfo[4].toNumber()
+                      // Add IPFS Connection
+                      ipfs = ipfsAPI('localhost', '5001')
+                      // Create customer user payload
+                      payload = {
+                        "name": userName, "type": userType, "address": coinbase,
+                        "home": homeAddress, "balance": balance, "orders": orders, "withdrawals": withdrawals, "ipfs": ipfs
+                      }
+                      break
 
                   default:
                       userName = "unknown"
@@ -127,7 +133,7 @@ export function loginUser() {
           
               } catch(error) {
                 // If error, go to signup page.
-                console.log(error)
+                // console.log(error)
 
                 return browserHistory.push('/signup')
               }

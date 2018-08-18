@@ -5,6 +5,7 @@ const initialState = {
   storage: "",
   owners: "",
   stores: "",
+  customers: "",
   loading: false,
   block: 0
 }

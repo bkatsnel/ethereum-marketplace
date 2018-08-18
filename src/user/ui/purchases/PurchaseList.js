@@ -48,7 +48,7 @@ const PurchaseList = ({user, loading, loaded, purchases, watch, refresh, onGet=f
           <input id="address" type="text" value={user.home}placeholder="Address" readOnly />
           <label>Balance:</label>
           <input id="balance" type="text" value={user.balance}placeholder="Balance" readOnly />
-          <label>Order Number:</label>
+          <label>Orders:</label>
           <input id="orders" type="text" value={user.orders}placeholder="Order Number" readOnly />
           <label>Overpayment Withdrawals:</label>
           <input id="withdrawals" type="text" value={user.withdrawals} placeholder="Withdrawals" readOnly />

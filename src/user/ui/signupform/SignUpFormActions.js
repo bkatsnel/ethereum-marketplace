@@ -1,4 +1,5 @@
-import OnlineMarketplaceContract from '../../../../build/contracts/OnlineMarketplace.json'
+import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
+import CustomersContract from '../../../../build/contracts/Customers.json'
 import { loginUser } from '../loginbutton/LoginButtonActions'
 import store from '../../../store'
 
@@ -12,10 +13,13 @@ export function signUpUser(name, homeAddress) {
   if (typeof web3 !== 'undefined') {
 
     return function(dispatch) {
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
 
+      // Using truffle-contract we create the market manager object.
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const Customers = contract(CustomersContract)
+      Customers.setProvider(web3.currentProvider)
 
       // Get current ethereum wallet.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -25,10 +29,11 @@ export function signUpUser(name, homeAddress) {
         }
 
         try { 
-          //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          //Get Deployed Market Manager Contract Instance
+          let manager = await MarketMgr.deployed();
+          let customers_address = await manager.getDeployedCustomersContract.call({from: coinbase})
           // Attempt to sign up user.
-          await instance.signUp(name, homeAddress, {from: coinbase})
+          await Customers.at(customers_address).signUp(name, homeAddress, {from: coinbase})
           // If no error, login user.
           return dispatch(loginUser())
 

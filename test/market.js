@@ -88,9 +88,16 @@ contract('Market', function(accounts) {
     
         it("Get adminAcct Administrator Id", async() => {
     
-          let id =  await market.getAdministrator.call(adminAcct, {from: adminAcct})
-          assert(id.toNumber(), 3, "adminAccta get administrator should return id of 3.")
+            let id =  await market.getAdministrator.call(adminAcct, {from: adminAcct})
+            assert(id.toNumber(), 3, "adminAccta administrator id should return id of 3.")
     
+        })
+
+        it("Get Manager Administrator Id", async() => {
+    
+            let id =  await market.getAdministrator.call(manager.address, {from: adminAcct})
+            assert(id.toNumber(), 1, "Manager administrator id should return id of 1.")
+        
         })
 
     })

@@ -1,5 +1,6 @@
 import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
 import StoresContract from '../../../../build/contracts/Stores.json'
+import CustomersContract from '../../../../build/contracts/Customers.json'
 import store from '../../../store'
 import { bytes32ToIPFSHash, ipfsHashToBytes32 } from '../../../util/ipfsFuncs'
 
@@ -363,88 +364,92 @@ export function getStores() {
   }
 }
 
-// export function watchStorePurchases() {
-//   let web3 = store.getState().web3.web3Instance
-//   let fromBlock = store.getState().purchases.block
-//   //Debug Code
-//   console.log("Watch Store Purchases From Block", fromBlock)
-//   // Double-check web3's status.
-//   if (typeof web3 !== 'undefined') {
+export function watchStorePurchases() {
+  let web3 = store.getState().web3.web3Instance
+  let fromBlock = store.getState().purchases.block
+  //Debug Code
+  console.log("Watch Store Purchases From Block", fromBlock)
+  // Double-check web3's status.
+  if (typeof web3 !== 'undefined') {
 
-//     return function(dispatch) {
+    return function(dispatch) {
 
-//       // Using truffle-contract we create the marketplace object.
-//       const marketplace = contract(OnlineMarketplaceContract)
-//       marketplace.setProvider(web3.currentProvider)
+      // Use truffle contract calls to setup contracts
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
 
-//       // Get current ethereum name.
-//       web3.eth.getCoinbase(async (error, coinbase) => {
-//         // Log errors, if any.
-//         if (error) {
-//           console.error(error);
-//         }
-//         // Start Purchases Load
-//         dispatch(startPurchasesLoad());
+      const Customers = contract(CustomersContract)
+      Customers.setProvider(web3.currentProvider)
 
-//         try { 
-//           //Get Deployed Marketplace Contract Instance
-//           let instance = await marketplace.deployed();
-//           // If from Block is 0 get contrat created block
-//           if (fromBlock === 0) {
+      // Get current ethereum name.
+      web3.eth.getCoinbase(async (error, coinbase) => {
+        // Log errors, if any.
+        if (error) {
+          console.error(error);
+        }
+        // Start Purchases Load
+        dispatch(startPurchasesLoad());
 
-//               let contractBlock = await instance.getBlockCreated.call({from: coinbase})
-//               fromBlock = contractBlock.toNumber()
-//               dispatch(setPurchasesBlock({ "block": fromBlock}))
-//               console.log("Stores Purchases From Block Set to ", fromBlock)
+        try { 
+          //Get Deployed Marketplace Contract Instance
+          let manager = await MarketMgr.deployed();
+          let customers_address = await manager.getDeployedCustomersContract.call({from: coinbase})
+          // If from Block is 0 get contrat created block
+          if (fromBlock === 0) {
 
-//           }
-//           // Define Event
-//           let addPurchaseEvent = instance.LogCustomerOrder({owner: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
-//           // Watch Event
-//           addPurchaseEvent.watch((error, result) => {
-//             // Log errors, if any.
-//             if (error) {
-//               console.error(error);
-//             }
-//             // Print Info
-//             console.log('Store Purchase Watch', result)
+              let contractBlock = await manager.getBlockCreated.call({from: coinbase})
+              fromBlock = contractBlock.toNumber()
+              dispatch(setPurchasesBlock({ "block": fromBlock}))
+              console.log("Stores Purchases From Block Set to ", fromBlock)
 
-//             let { name, id, quantity, price, payment, order } = result.args
-//             let purchases = store.getState().purchases.purchases
+          }
+          // Define Event
+          let addPurchaseEvent = Customers.at(customers_address).LogCustomerOrder({owner: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
+          // Watch Event
+          addPurchaseEvent.watch((error, result) => {
+            // Log errors, if any.
+            if (error) {
+              console.error(error);
+            }
+            // Print Info
+            console.log('Store Purchase Watch', result)
 
-//             if (purchases.filter((purchase) => purchase.order === order.toNumber()).length === 0) {
+            let { name, id, quantity, price, payment, order } = result.args
+            let purchases = store.getState().purchases.purchases
 
-//               let payload = {
-//                 "purchase": {store: web3.toUtf8(name), id: id.toNumber(), quantity: quantity.toNumber(),
-//                               price: price.toNumber(), payment: payment.toNumber(), order: order.toNumber()},
-//                 "block": result.blockNumber
-//               } 
-//               // Add Admin Info To Store
-//               console.log('Store Purchases Payload', payload)
-//               dispatch(addPurchase(payload))
-//               // Update Store Balance
-//               let total =  quantity.toNumber() * price.toNumber()
-//               dispatch(updateStoreBalance({name: web3.toUtf8(name), total: total, order: order}))
+            if (purchases.filter((purchase) => purchase.order === order.toNumber()).length === 0) {
 
-//             }
+              let payload = {
+                "purchase": {store: web3.toUtf8(name), id: id.toNumber(), quantity: quantity.toNumber(),
+                              price: price.toNumber(), payment: payment.toNumber(), order: order.toNumber()},
+                "block": result.blockNumber
+              } 
+              // Add Admin Info To Store
+              console.log('Store Purchases Payload', payload)
+              dispatch(addPurchase(payload))
+              // Update Store Balance
+              let total =  quantity.toNumber() * price.toNumber()
+              dispatch(updateStoreBalance({name: web3.toUtf8(name), total: total, order: order}))
 
-//             // Not Synced Yet
-//             return dispatch(endPurchasesLoad());
+            }
+
+            // Not Synced Yet
+            return dispatch(endPurchasesLoad());
  
-//           })
+          })
 
-//         } catch(error) {
-//             // If error...
-//             console.error(error)
-//         }
+        } catch(error) {
+            // If error...
+            console.error(error)
+        }
 
-//       })
+      })
 
-//   }
+  }
 
-//   } else {
+  } else {
 
-//     console.error('Web3 is not initialized.');
+    console.error('Web3 is not initialized.');
 
-//   }
-// }
+  }
+}

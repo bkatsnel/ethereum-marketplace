@@ -19,6 +19,9 @@ contract('Customers', function(accounts) {
     const petStore = "Pet Store"
     const petProduct = "Gold Fish"
 
+    let id = 1, quantity = 10, price = 50, orderQuantity = 1
+    let payment = orderQuantity * price + 10
+
     const bytes32ToIPFSHash = hash_hex => {
         var buf = new Buffer(hash_hex.replace(/^0x/, '1220'), 'hex')
         return bs58.encode(buf)
@@ -133,9 +136,6 @@ contract('Customers', function(accounts) {
 
     describe('Verify Store Product Functions', async () => { 
 
-        let tx
-        let id = 1, quantity = 10, price = 50
-    
         it("Add store product", async() => {
           tx = await stores.addStoreProduct(petStore, id, quantity, price, petProduct, {from: storeOwnerAcct})
 
@@ -185,9 +185,6 @@ contract('Customers', function(accounts) {
 
     describe('Verify Customer Order Functions', async () => { 
 
-        let id = 1,  price = 50, orderQuantity = 1
-        let payment = orderQuantity * price + 10
-
         it ("Test Customer Order", async() => {
 
             // Place Order 
@@ -231,6 +228,10 @@ contract('Customers', function(accounts) {
 
         })
 
+    })
+
+    describe('Verify Withdrwals Functions', async () => { 
+
         it ("Test Customer Balance Withdrawal", async() => {
             // Place Order 
             // Place Order 
@@ -245,6 +246,32 @@ contract('Customers', function(accounts) {
             // Check Customer Balance
             let customer = await customers.getCustomerInfo.call({from: customerAcct});
             assert.equal(customer[2].toNumber(), 0, "Verify Customer Balance.");
+        })
+
+        it ("Test Owner Store Funds Withdrawal", async() => {
+            // Place Order 
+            let tx = await customers.withdrawStoreFunds(petStore, {from: storeOwnerAcct});
+            // Verify Withdrawal Has Been made
+            truffleAssert.eventEmitted(tx, 'LogOwnerWithdrawal', (ev) => {
+                return web3.toUtf8(ev.name) === petStore && ev.owner === storeOwnerAcct && ev.amount.toNumber() === orderQuantity * price;
+            },"LogOwnerWithdrawal event should have been emitted.");
+
+        })
+
+        it ("Verify Store Owner Balance After Withdrawal", async() => {
+
+            // Check owner balance
+            let owner = await owners.getStoreOwner.call(storeOwnerAcct, {from: storeOwnerAcct});
+            assert.equal(owner[2].toNumber(), 0, "Verify Customer Balance.");
+
+        })
+
+        it ("Verify Store Balance After Withdrawal", async() => {
+
+            // Varify Store Funds
+            let store = await stores.getStore.call(petStore, {from: storeOwnerAcct})
+            assert.equal(store[2].toNumber(), 0, "Verify Store Funds.")
+
         })
 
     })

@@ -1,4 +1,5 @@
-import OnlineMarketplaceContract from '../../../../build/contracts/OnlineMarketplace.json'
+import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
+import CustomersContract from '../../../../build/contracts/Customers.json'
 import store from '../../../store'
 
 const contract = require('truffle-contract')
@@ -52,9 +53,12 @@ export function watchWithdrawals() {
   
       return function(dispatch) {
   
-        // Using truffle-contract we create the marketplace object.
-        const marketplace = contract(OnlineMarketplaceContract)
-        marketplace.setProvider(web3.currentProvider)
+        // Using truffle-contract we create the market manager object.
+        const MarketMgr = contract(MarketManagerContract)
+        MarketMgr.setProvider(web3.currentProvider)
+
+        const Customers = contract(CustomersContract)
+        Customers.setProvider(web3.currentProvider)
   
         // Get current ethereum name.
         web3.eth.getCoinbase(async (error, coinbase) => {
@@ -66,19 +70,20 @@ export function watchWithdrawals() {
           dispatch(startWithdrawalsLoad())
   
           try { 
-            //Get Deployed Marketplace Contract Instance
-            let instance = await marketplace.deployed();
+            //Get Deployed Market Manager Contract Instance
+            let manager = await MarketMgr.deployed();
+            let customers_address = await manager.getDeployedCustomersContract.call({from: coinbase})
             // If from Block is 0 get contrat created block
             if (fromBlock === 0) {
   
-                let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+                let contractBlock = await manager.getBlockCreated.call({from: coinbase})
                 fromBlock = contractBlock.toNumber()
                 dispatch(setWithdrawalsBlock({ "block": fromBlock}))
                 console.log("Withdrawals From Block Set to ", fromBlock)
   
             }
             // Define Event
-            let addWithdrawalsEvent = instance.LogOwnerWithdrawal({owner: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
+            let addWithdrawalsEvent = Customers.at(customers_address).LogOwnerWithdrawal({owner: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
             // Watch Event
             addWithdrawalsEvent.watch((err, res) => {
               // Log errors, if any.
@@ -97,11 +102,10 @@ export function watchWithdrawals() {
               // Add Admiin Info To Withdrawal
               console.log('Withdrawals Payload', payload)
               dispatch(addWithdrawal(payload))
-              return dispatch(updateStoreBalance(web3.toUtf8(name), amount.toNumber()))
+              dispatch(updateStoreBalance(web3.toUtf8(name), amount.toNumber()))
+              return dispatch(endWithdrawalsLoad());
   
             })
-            // Not Synced Yet
-            return dispatch(endWithdrawalsLoad());
   
           } catch(error) {
               // If error...

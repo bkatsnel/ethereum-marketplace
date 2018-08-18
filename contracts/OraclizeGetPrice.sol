@@ -18,7 +18,7 @@ contract OraclizeGetPrice is usingOraclize {
         emit LogUpdate(owner, address(this).balance);
 
         // Replace the next line with your version:
-        OAR = OraclizeAddrResolverI(0x98d52C3C3959B35496477510920e2C99E6e9cAC0);
+        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 
         oraclize_setProof(proofType_TLSNotary | proofStorage_IPFS);
         update();
