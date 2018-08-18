@@ -1,4 +1,5 @@
-import OnlineMarketplaceContract from '../../../../build/contracts/OnlineMarketplace.json'
+import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
+import StoresContract from '../../../../build/contracts/Stores.json'
 import store from '../../../store'
 import { bytes32ToIPFSHash, ipfsHashToBytes32 } from '../../../util/ipfsFuncs'
 
@@ -105,9 +106,12 @@ export function addStores(name, logo) {
   if (typeof web3 !== 'undefined') {
 
     return function(dispatch) {
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const Stores = contract(StoresContract)
+      Stores.setProvider(web3.currentProvider)
 
       // Get current ethereum name.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -118,8 +122,8 @@ export function addStores(name, logo) {
 
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
-
+          let manager = await MarketMgr.deployed();
+          let stores_address = await manager.getDeployedStoresContract.call({from: coinbase})
           // Create IPFS File And Store its hash 
         
           ipfs.add([Buffer.from(logo)], async (err, res) => {
@@ -130,7 +134,7 @@ export function addStores(name, logo) {
             const bytes32 = ipfsHashToBytes32(hash)
             console.log("Logo Bytes32", hash)
             // Attempt to sign up user.
-            await instance.addStore(name, bytes32, {from: coinbase})
+            await Stores.at(stores_address).addStore(name, bytes32, {from: coinbase})
             // If no error, login user.
             return dispatch(startStoresWatch())
 
@@ -161,9 +165,11 @@ export function watchStores() {
 
     return function(dispatch) {
 
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const Stores = contract(StoresContract)
+      Stores.setProvider(web3.currentProvider)
 
       // Get current ethereum name.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -176,18 +182,19 @@ export function watchStores() {
 
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          let manager = await MarketMgr.deployed();
+          let stores_address = await manager.getDeployedStoresContract.call({from: coinbase})
           // If from Block is 0 get contrat created block
           if (fromBlock === 0) {
 
-              let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+              let contractBlock = await manager.getBlockCreated.call({from: coinbase})
               fromBlock = contractBlock.toNumber()
               dispatch(setStoresBlock({ "block": fromBlock}))
               console.log("Watch Stores From Block Set to ", fromBlock)
 
           }
           // Define Event
-          let addStoresEvent = instance.LogAddStore({owner: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
+          let addStoresEvent = Stores.at(stores_address).LogAddStore({owner: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
           // Watch Event
           addStoresEvent.watch((error, result) => {
             // Log errors, if any.
@@ -261,7 +268,7 @@ function populateStores(results, dispatch, instance, ipfs, web3, coinbase) {
           // Create Store Payload
           let payload = {
             "store": {"name": web3.toUtf8(result.args.name), "owner": result.args.owner, "funds": store[2].toNumber(),
-                      "orders": store[5].toNumber(), "logo": logo},
+                      "orders": store[4].toNumber(), "logo": logo},
             "block": result.blockNumber
           } 
           // Add Admin Info To Store
@@ -292,9 +299,12 @@ export function getStores() {
 
     return function(dispatch) {
 
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const Stores = contract(StoresContract)
+      Stores.setProvider(web3.currentProvider)
+
 
       // Get current ethereum name.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -307,18 +317,19 @@ export function getStores() {
 
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          let manager = await MarketMgr.deployed();
+          let stores_address = await manager.getDeployedStoresContract.call({from: coinbase})
           // If from Block is 0 get contrat created block
           if (fromBlock === 0) {
 
-              let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+              let contractBlock = await manager.getBlockCreated.call({from: coinbase})
               fromBlock = contractBlock.toNumber()
               dispatch(setStoresBlock({ "block": fromBlock}))
               console.log("Get Stores From Block Set to ", fromBlock)
 
           }
           // Define Event
-          let addStoresEvent = instance.LogAddStore({owner: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
+          let addStoresEvent = Stores.at(stores_address).LogAddStore({owner: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
           // Watch Event
           addStoresEvent.get(async (error, results) => {
             // Log errors, if any.
@@ -327,30 +338,8 @@ export function getStores() {
             }
            
             if (results.length > 0) {
-              await populateStores(results, dispatch, instance, ipfs, web3, coinbase)
+              await populateStores(results, dispatch, Stores.at(stores_address), ipfs, web3, coinbase)
             }
-            // results.forEach((result) => {
-            //   // Get Bytes32 Encoded IPFS Hash And Convert to IPFS 
-            //   let hash = bytes32ToIPFSHash(result.args.descHash)
-            //   let logo = ''
-
-            //   ipfs.cat(hash, (err, res) => {
-            //     if (err) throw err
-
-            //     res.on('data', (d) => logo += d)
-            //     res.on('end', () => { 
-            //       // Create Store Payload
-            //       let payload = {
-            //         "store": {"name": web3.toUtf8(result.args.name), "owner": result.args.owner, "funds": 0, "orders": 0, "logo": logo},
-            //         "block": result.blockNumber
-            //       } 
-            //       // Add Admin Info To Store
-            //       console.log('Stores Payload', payload)
-            //       return dispatch(addStore(payload))
-
-            //     })
-
-            // })
 
            })
 
@@ -374,88 +363,88 @@ export function getStores() {
   }
 }
 
-export function watchStorePurchases() {
-  let web3 = store.getState().web3.web3Instance
-  let fromBlock = store.getState().purchases.block
-  //Debug Code
-  console.log("Watch Store Purchases From Block", fromBlock)
-  // Double-check web3's status.
-  if (typeof web3 !== 'undefined') {
+// export function watchStorePurchases() {
+//   let web3 = store.getState().web3.web3Instance
+//   let fromBlock = store.getState().purchases.block
+//   //Debug Code
+//   console.log("Watch Store Purchases From Block", fromBlock)
+//   // Double-check web3's status.
+//   if (typeof web3 !== 'undefined') {
 
-    return function(dispatch) {
+//     return function(dispatch) {
 
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+//       // Using truffle-contract we create the marketplace object.
+//       const marketplace = contract(OnlineMarketplaceContract)
+//       marketplace.setProvider(web3.currentProvider)
 
-      // Get current ethereum name.
-      web3.eth.getCoinbase(async (error, coinbase) => {
-        // Log errors, if any.
-        if (error) {
-          console.error(error);
-        }
-        // Start Purchases Load
-        dispatch(startPurchasesLoad());
+//       // Get current ethereum name.
+//       web3.eth.getCoinbase(async (error, coinbase) => {
+//         // Log errors, if any.
+//         if (error) {
+//           console.error(error);
+//         }
+//         // Start Purchases Load
+//         dispatch(startPurchasesLoad());
 
-        try { 
-          //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
-          // If from Block is 0 get contrat created block
-          if (fromBlock === 0) {
+//         try { 
+//           //Get Deployed Marketplace Contract Instance
+//           let instance = await marketplace.deployed();
+//           // If from Block is 0 get contrat created block
+//           if (fromBlock === 0) {
 
-              let contractBlock = await instance.getBlockCreated.call({from: coinbase})
-              fromBlock = contractBlock.toNumber()
-              dispatch(setPurchasesBlock({ "block": fromBlock}))
-              console.log("Stores Purchases From Block Set to ", fromBlock)
+//               let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+//               fromBlock = contractBlock.toNumber()
+//               dispatch(setPurchasesBlock({ "block": fromBlock}))
+//               console.log("Stores Purchases From Block Set to ", fromBlock)
 
-          }
-          // Define Event
-          let addPurchaseEvent = instance.LogCustomerOrder({owner: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
-          // Watch Event
-          addPurchaseEvent.watch((error, result) => {
-            // Log errors, if any.
-            if (error) {
-              console.error(error);
-            }
-            // Print Info
-            console.log('Store Purchase Watch', result)
+//           }
+//           // Define Event
+//           let addPurchaseEvent = instance.LogCustomerOrder({owner: coinbase}, {fromBlock: fromBlock, toBlock: 'latest'})
+//           // Watch Event
+//           addPurchaseEvent.watch((error, result) => {
+//             // Log errors, if any.
+//             if (error) {
+//               console.error(error);
+//             }
+//             // Print Info
+//             console.log('Store Purchase Watch', result)
 
-            let { name, id, quantity, price, payment, order } = result.args
-            let purchases = store.getState().purchases.purchases
+//             let { name, id, quantity, price, payment, order } = result.args
+//             let purchases = store.getState().purchases.purchases
 
-            if (purchases.filter((purchase) => purchase.order === order.toNumber()).length === 0) {
+//             if (purchases.filter((purchase) => purchase.order === order.toNumber()).length === 0) {
 
-              let payload = {
-                "purchase": {store: web3.toUtf8(name), id: id.toNumber(), quantity: quantity.toNumber(),
-                              price: price.toNumber(), payment: payment.toNumber(), order: order.toNumber()},
-                "block": result.blockNumber
-              } 
-              // Add Admin Info To Store
-              console.log('Store Purchases Payload', payload)
-              dispatch(addPurchase(payload))
-              // Update Store Balance
-              let total =  quantity.toNumber() * price.toNumber()
-              dispatch(updateStoreBalance({name: web3.toUtf8(name), total: total, order: order}))
+//               let payload = {
+//                 "purchase": {store: web3.toUtf8(name), id: id.toNumber(), quantity: quantity.toNumber(),
+//                               price: price.toNumber(), payment: payment.toNumber(), order: order.toNumber()},
+//                 "block": result.blockNumber
+//               } 
+//               // Add Admin Info To Store
+//               console.log('Store Purchases Payload', payload)
+//               dispatch(addPurchase(payload))
+//               // Update Store Balance
+//               let total =  quantity.toNumber() * price.toNumber()
+//               dispatch(updateStoreBalance({name: web3.toUtf8(name), total: total, order: order}))
 
-            }
+//             }
 
-            // Not Synced Yet
-            return dispatch(endPurchasesLoad());
+//             // Not Synced Yet
+//             return dispatch(endPurchasesLoad());
  
-          })
+//           })
 
-        } catch(error) {
-            // If error...
-            console.error(error)
-        }
+//         } catch(error) {
+//             // If error...
+//             console.error(error)
+//         }
 
-      })
+//       })
 
-  }
+//   }
 
-  } else {
+//   } else {
 
-    console.error('Web3 is not initialized.');
+//     console.error('Web3 is not initialized.');
 
-  }
-}
+//   }
+// }

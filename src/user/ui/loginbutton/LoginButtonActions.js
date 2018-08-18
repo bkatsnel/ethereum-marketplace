@@ -58,7 +58,7 @@ export function loginUser() {
               try {
                 // Attempt to login user.
                 let result = await market.login({from: coinbase})
-                console.log("Login Result", result)
+                // console.log("Login Result", result)
                 let id, userName, homeAddress, balance, orders, withdrawals, payload, ipfs
                 let userType=web3.toUtf8(result)
 

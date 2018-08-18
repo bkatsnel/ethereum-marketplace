@@ -2,28 +2,13 @@ pragma solidity ^0.4.21;
 
 import "./EternalStorage.sol";
 import "./SecurityLibrary.sol";
-import "./zeppelin/ownership/Ownable.sol";
+import "./IMarket.sol";
+import "./IStoreOwners.sol";
 
-contract Market is Ownable {
+contract Market is IMarket {
 
     using SecurityLibrary for address;
-    address public eternalStorage;
 
-    enum State { Active, Locked }
-    State private state = State.Active;
-
-   // State Modifier
-        
-    modifier Active { 
-        require(state == State.Active, "The contract is locked - can not perform function");
-        _; 
-    }
-    
-    modifier Locked { 
-        require(state == State.Locked, "The contract is active - can not perform function");
-        _; 
-    }
-  
     // Administrators' Modifiers
     
     modifier OnlyAdministrator { 
@@ -36,81 +21,72 @@ contract Market is Ownable {
         _; 
     }
 
-    // Events 
+    // Events Are Inherited
 
-    event LogAddAdministrator(address indexed admin, uint256 index);
-    event LogRemoveAdministrator(address indexed admin, uint256 index);
-    event LogLockContractAction(address indexed admin, address indexed contractAddress, State state);
-    event LogUnLockContractAction(address indexed admin, address indexed contractAddress, State state);
+    // Contract Constructor
 
     constructor(address _eternalStorage) public {
         eternalStorage = _eternalStorage;
     }
 
-    function transferStorageOwnership(address market) public OnlyAdministrator {
+    function transferStorageOwnership(address market) public whenNotPaused OnlyAdministrator {
         EternalStorage(eternalStorage).transferOwnership(market);
     }
 
-    function addStorageOwner(address owner) public OnlyAdministrator {
+    function addStorageOwner(address owner) public whenNotPaused OnlyAdministrator {
         EternalStorage(eternalStorage).addOwner(owner);
     }
 
     // Login and Sign Up Functions
 
-    function login() public view Active returns (bytes32) { 
+    function login() public view whenNotPaused returns (bytes32) { 
         // Return Account Type
         if (isAdministrator()) return "admin"; 
         else if (isStoreOwner()) return "owner";
         else return "customer";
     }
 
-    // Lock Functions
-    
-    function lock() public Active OnlyAdministrator {
-        state = State.Locked;
-        emit LogLockContractAction(msg.sender, this, state);
-    }
-    
-    function unlock() public Locked OnlyAdministrator {
-        state = State.Active;
-        emit LogUnLockContractAction(msg.sender, this, state);
+    // Store Owner Contract Info
+
+    function setStoreOwnersContractAddress(address _storeOwners) public OnlyAdministrator {
+        storeOwners = _storeOwners;
     }
 
-    function destroy(address _newMarket) public OnlyAdministrator {
-        selfdestruct(_newMarket);
+    function getStoreOwnersContractAddress() public view returns(address) {
+        return storeOwners;
     }
 
     // Administrator Functions
 
-    function addAdministrator(address admin) public {
+    function addFirstAdministrator(address admin) public whenNotPaused onlyOwner {
         eternalStorage.addAdministrator(admin);
     }
 
-    function isAdministrator() public view Active returns (bool) {
+    function addAdministrator(address admin) public whenNotPaused OnlyAdministrator {
+        eternalStorage.addAdministrator(admin);
+    }
+
+    function isAdministrator() public view whenNotPaused returns (bool) {
         return eternalStorage.isAdministrator(msg.sender);
     }
     
-    function getAdministrator(address admin) public view Active returns (uint) {
+    function getAdministrator(address admin) public view whenNotPaused OnlyAdministrator returns (uint) {
         return eternalStorage.getAdministrator(admin);
     }
 
     // Store Owner Functions
 
-    function isStoreOwner() public view Active returns (bool) {
-        return false;
+    function isStoreOwner() public view whenNotPaused returns (bool) {
+        return IStoreOwners(storeOwners).isStoreOwner(msg.sender);
     }
 
     // Getters
 
-    function getBlockCreated() public view Active returns (uint) {
+    function getBlockCreated() public view whenNotPaused returns (uint) {
         return EternalStorage(eternalStorage).getBlockCreated();
     }
 
-    function getState() public view OnlyAdministrator returns (State) {
-        return state;
-    }
-
-    function getEternalStorageAddress() public view Active OnlyAdministrator returns (address) {
+    function getEternalStorageAddress() public view whenNotPaused OnlyAdministrator returns (address) {
         return eternalStorage;
     }
 

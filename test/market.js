@@ -6,7 +6,7 @@ const truffleAssert = require('truffle-assertions')
 
 contract('Market', function(accounts) {
 
-    let manager, market, storage, state
+    let manager, market, storage, paused
 
     const ownerAcct = accounts[0]
     const adminAcct = accounts[1]
@@ -48,23 +48,21 @@ contract('Market', function(accounts) {
     describe('Verify Emercency Stop Functions', async () => { 
 
         it("Verify Inital State is Active", async() => {
-            state = await market.getState.call({from: ownerAcct})
-            assert.equal(state.toNumber(), 0, "State should be 0 meaning Active.")
+            paused = await market.paused.call({from: ownerAcct})
+            assert.equal(paused, false, "Contract should not be paused when created.")
             // console.log('State', state.toNumber())
         })
         
-        it("Lock Contract", async() => {
-            await market.lock({from: ownerAcct})
-            state = await market.getState.call({from: ownerAcct})
-            // console.log('State', state.toNumber())
-            assert.equal(state.toNumber(), 1, "State should be 1 meaning Locked.")
+        it("Pause Contract", async() => {
+            await market.pause({from: ownerAcct})
+            paused = await market.paused.call({from: ownerAcct})
+            assert.equal(paused, true, "Contract should be paused after pause request.")
         })
     
-        it("Unlock Contract", async() => {
-            await market.unlock({from: ownerAcct})
-            state = await market.getState.call({from: ownerAcct})
-            assert.equal(state.toNumber(), 0, "State should be 0 meaning Active.")
-            // console.log('State', state.toNumber())
+        it("UnPause Contract", async() => {
+            await market.unpause({from: ownerAcct})
+            paused = await market.paused.call({from: ownerAcct})
+            assert.equal(paused, false, "Contract should not be paused after unpause created.")
         })
     
     })

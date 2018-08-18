@@ -1,13 +1,11 @@
 pragma solidity ^0.4.21;
 
-import "./zeppelin/ownership/Ownable.sol";
+import "../installed_contracts/zeppelin/contracts/ownership/Ownable.sol";
 
 contract EternalStorage is Ownable {
 
     uint private blockCreated = block.number;
     mapping (address => bool) owners;
-
-   
 
     // Modifiers
 

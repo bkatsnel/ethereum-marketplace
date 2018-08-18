@@ -1,13 +1,15 @@
 var MarketManager = artifacts.require("./MarketManager.sol")
 var Market = artifacts.require("./Market.sol")
 var StoreOwners = artifacts.require("./StoreOwners.sol")
+var Stores = artifacts.require("./Stores.sol")
+var Customers = artifacts.require("./Customers.sol")
 var EternalStorage = artifacts.require("./EternalStorage.sol")
 
 const truffleAssert = require('truffle-assertions')
 
 contract('MarketManager', function(accounts) {
 
-    let manager, market, storage, new_market, upg_market, owners
+    let manager, market, storage, new_market, upg_market, owners, stores, customers
     const ownerAcct = accounts[0]
 
     //   beforeEach(async () => {
@@ -53,7 +55,7 @@ contract('MarketManager', function(accounts) {
         })
 
         it("Get Eternal Storage Contract Address", async() => {
-        
+            
             storage = await manager.getDeployedStorageContract.call({from: ownerAcct})
             assert.notEqual(storage, "0x0000000000000000000000000000000000000000")
             // console.log("Storage", storage)
@@ -64,6 +66,96 @@ contract('MarketManager', function(accounts) {
             let owner = await EternalStorage.at(storage).owner.call({from: ownerAcct})
             assert.equal(owner, market)
             // console.log("sOwner", owner)
+        })
+
+    })
+ 
+    describe('Verify Initial Store Owners Contact Deployment', async () => { 
+
+        it("Deploy Initial StoreOwners Contract", async() => {
+
+            owners = await StoreOwners.deployed(manager.address);
+
+            let tx = await manager.deployStoreOwnersContract(owners.address, {from: ownerAcct})
+            
+            truffleAssert.eventEmitted(tx, 'StoreOwnersContractDeployed', (ev) => {
+                return true
+            }, "StoreOwnersContractDeployed event should have been emiited.")
+
+        })
+
+        it("Get StoreOwners Eternal Storage Contract Address", async() => {
+
+            let owners_storage = await owners.getEternalStorageAddress.call({from: ownerAcct})
+            assert.equal(owners_storage, storage)
+            // console.log("Storage", storage)
+        })
+
+        it("Verify StoreOwners Contract is One of Eternal Storage Contract Owners", async() => {
+
+            let isOwner = await EternalStorage.at(storage).isStorageOwner.call(owners.address, {from: ownerAcct})
+            assert.equal(isOwner, true)
+            // console.log("Storage", storage)
+        })
+
+    })
+
+    describe('Verify Initial Stores Contact Deployment', async () => { 
+
+        it("Deploy Initial Stores Contract", async() => {
+
+            stores = await Stores.deployed(manager.address);
+
+            let tx = await manager.deployStoresContract(stores.address, {from: ownerAcct})
+            
+            truffleAssert.eventEmitted(tx, 'StoresContractDeployed', (ev) => {
+                return true
+            }, "StoresContractDeployed event should have been emiited.")
+
+        })
+
+        it("Get Stores Eternal Storage Contract Address", async() => {
+
+            let stores_storage = await stores.getEternalStorageAddress.call({from: ownerAcct})
+            assert.equal(stores_storage, storage)
+            // console.log("Storage", storage)
+        })
+
+        it("Verify Stores Contract is One of Eternal Storage Contract Owners", async() => {
+
+            let isOwner = await EternalStorage.at(storage).isStorageOwner.call(stores.address, {from: ownerAcct})
+            assert.equal(isOwner, true)
+            // console.log("Storage", storage)
+        })
+
+    })
+
+    describe('Verify Initial Customers Contact Deployment', async () => { 
+
+        it("Deploy Initial Customers Contract", async() => {
+
+            customers = await Customers.deployed(manager.address);
+
+            let tx = await manager.deployCustomersContract(customers.address, {from: ownerAcct})
+            
+            truffleAssert.eventEmitted(tx, 'CustomersContractDeployed', (ev) => {
+                return true
+            }, "CustomersContractDeployed event should have been emiited.")
+
+        })
+
+        it("Get Customers Eternal Storage Contract Address", async() => {
+
+            let customers_storage = await customers.getEternalStorageAddress.call({from: ownerAcct})
+            assert.equal(customers_storage, storage)
+            // console.log("Storage", storage)
+        })
+
+        it("Verify Customers Contract is One of Eternal Storage Contract Owners", async() => {
+
+            let isOwner = await EternalStorage.at(storage).isStorageOwner.call(customers.address, {from: ownerAcct})
+            assert.equal(isOwner, true)
+            // console.log("Storage", storage)
         })
 
     })
@@ -100,34 +192,5 @@ contract('MarketManager', function(accounts) {
         })
 
     })
-
-    describe('Verify Initial Store Owners Contact Deployment', async () => { 
-
-        it("Deploy Initial StoreOwners Contract", async() => {
-            let tx = await manager.deployStoreOwnersContract({from: ownerAcct})
-            
-            truffleAssert.eventEmitted(tx, 'StoreOwnersContractDeployed', (ev) => {
-                return true
-            }, "StoreOwnersContractDeployed event should have been emiited.")
-
-        })
-
-        it("Get StoreOwners Eternal Storage Contract Address", async() => {
-
-            owners = await manager.getDeployedStoreOwnersContract.call({from: ownerAcct})
-            storage = await StoreOwners.at(owners).getEternalStorageAddress.call({from: ownerAcct})
-            assert.notEqual(storage, "0x0000000000000000000000000000000000000000")
-            // console.log("Storage", storage)
-        })
-
-        it("Verify StoreOwners Contract is One of Eternal Storage Contract Owners", async() => {
-
-            let isOwner = await EternalStorage.at(storage).isStorageOwner.call(owners, {from: ownerAcct})
-            assert.equal(isOwner, true)
-            // console.log("Storage", storage)
-        })
-
-    })
-
 
 })

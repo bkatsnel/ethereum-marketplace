@@ -1,4 +1,5 @@
 import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
+import StoreOwnersContract from '../../../../build/contracts/StoreOwners.json'
 // import MarketContract from '../../../../build/contracts/Market.json'
 import store from '../../../store'
 
@@ -51,12 +52,16 @@ export function getManagerAddress() {
                     let manager = await marketManager.deployed();
                     let market_address  =  await manager.getDeployedMarketContract.call({from: coinbase});
                     let storage_address  =  await manager.getDeployedStorageContract.call({from: coinbase});
+                    let owners_address  =  await manager.getDeployedStoreOwnersContract.call({from: coinbase});
+                    // let stores_address  =  await manager.getDeployedStoresContract.call({from: coinbase});
                     let block = await manager.getBlockCreated.call({from: coinbase})
 
                     let payload = {
                         manager: manager,
                         market: market_address === addressZero ? "" : market_address,
                         storage: storage_address === addressZero ? "" : storage_address,
+                        owners: owners_address === addressZero ? "" : owners_address,
+                        // stores: stores_address === addressZero ? "" : stores_address,
                         block: block.toNumber()
                     }
 
@@ -148,6 +153,9 @@ export function deployStoreOwners() {
             const marketManager = contract(MarketManagerContract)
             marketManager.setProvider(web3.currentProvider)
 
+            const storeOwners = contract(StoreOwnersContract)
+            storeOwners.setProvider(web3.currentProvider)
+
             // Get current ethereum name.
             web3.eth.getCoinbase(async (error, coinbase) => {
                 // Indicate Load Start
@@ -156,8 +164,9 @@ export function deployStoreOwners() {
                 try { 
 
                     let manager = await marketManager.deployed();
+                    let owners = await storeOwners.deployed(manager.address)
 
-                    await manager.deployStoreOwnersContract({from: coinbase})
+                    await manager.deployStoreOwnersContract(owners.address, {from: coinbase})
 
                     let storeOwnersContractDeployed = manager.StoreOwnersContractDeployed({}, {fromBlock: fromBlock, toBlock: 'latest'})
 
@@ -190,4 +199,59 @@ export function deployStoreOwners() {
 
 }
    
+export function deployStores() {
+
+    let web3 = store.getState().web3.web3Instance
+    let fromBlock = store.getState().web3.block
+    //Debug Code
+    console.log("Deploy Store Owners Contract")
+    // Double-check web3's status.
+    if (typeof web3 !== 'undefined') {
+
+        return function(dispatch) {
+
+            const marketManager = contract(MarketManagerContract)
+            marketManager.setProvider(web3.currentProvider)
+
+            // Get current ethereum name.
+            web3.eth.getCoinbase(async (error, coinbase) => {
+                // Indicate Load Start
+                dispatch(startManagerLoad())
+
+                try { 
+
+                    let manager = await marketManager.deployed();
+
+                    await manager.deployStoresContract({from: coinbase})
+
+                    let storesContractDeployed = manager.StoresContractDeployed({}, {fromBlock: fromBlock, toBlock: 'latest'})
+
+                    storesContractDeployed.watch((error, result) => {
+
+                        // Log errors, if any.
+                        if (error) {
+                            console.error(error);
+                        }
+                    
+                        let payload = {
+                            stores: result.args.stores,
+                        }
+    
+                        console.log("Stores Contract", payload)
+                        dispatch(updateWeb3Info(payload))
+                        return dispatch(endManagerLoad())
+    
+                    })
+
+                } catch(error) {
+
+                    console.error(error)
+
+                }
+
+            })
+        }
+    }
+
+}
 

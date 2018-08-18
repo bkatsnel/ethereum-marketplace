@@ -1,77 +1,38 @@
 pragma solidity ^0.4.21;
 
-import "./EternalStorage.sol";
-import "./SecurityLibrary.sol";
-import "./zeppelin/ownership/Ownable.sol";
+import "../installed_contracts/zeppelin/contracts/lifecycle/Destructible.sol";
+import "../installed_contracts/zeppelin/contracts/lifecycle/Pausable.sol";
 
-contract IStoreOwners is Ownable {
-
-    using SecurityLibrary for EternalStorage;
-    EternalStorage public eternalStorage; 
-    
-    enum State { Active, Locked }
-    State private state = State.Active;
-
-    // State Modifiers
-        
-    modifier Active { 
-        require(state == State.Active, "The contract is locked - can not perform function");
-        _; 
-    }
-    
-    modifier Locked { 
-        require(state == State.Locked, "The contract is active - can not perform function");
-        _; 
-    }
-
-    // Administrators' Modifiers
-    
-    modifier OnlyAdministrator { 
-        require(eternalStorage.isAdministrator(msg.sender), "Only administrator can perform this function"); 
-        _; 
-    }
+contract IStoreOwners is Destructible, Pausable {
 
     // Events
 
     event LogAddStoreOwner(uint indexed id, address indexed owner, bytes32 indexed name);   
-    event LogLockContractAction(address indexed admin, address indexed contractAddress, State state);
-    event LogUnLockContractAction(address indexed admin, address indexed contractAddress, State state);
+    event LogAddStoreOwnerOrder(address indexed owner, uint indexed payment);   
+    event LogWithdrawStoreOwnerFunds(address indexed owner, uint indexed amount);   
 
     // Contract Constructor
 
-    constructor(address _eternalStorage) public {
-        eternalStorage = EternalStorage(_eternalStorage);
+    constructor(address) public {
+
     }
     
-    // Lock Functions
-    
-    function lock() public Active OnlyAdministrator {
-        state = State.Locked;
-        emit LogLockContractAction(msg.sender, this, state);
-    }
-    
-    function unlock() public Locked OnlyAdministrator {
-        state = State.Active;
-        emit LogUnLockContractAction(msg.sender, this, state);
-    }
+    // Storage functions
 
-    function destroy(address _newStoreOwners) public OnlyAdministrator {
-        selfdestruct(_newStoreOwners);
-    }
-
-    // Gettters
-
-    function getEternalStorageAddress() public view returns (address) {
-        return eternalStorage;
-    }
+    function getEternalStorageAddress() public view returns (address);
+    function setEternalStorageAddress(address eternalStorage) public;
 
     // Virtual Functions
 
-    function addStoreOwner(address owner, bytes32 name) public;
+    function addStoreOwner(address owner, bytes32 name)  public;
+    function addStoreOwnerOrder(address owner, uint payment) public;
+    function addStoreOwnerStore(address owner) public;
+    function withdrawStoreOwnerFunds(address owner, uint amount) public;
 
     // Virtual Getters
 
     function isStoreOwner() public view returns (bool);
+    function isStoreOwner(address owner) public view returns (bool);
     function getStoreOwner(address owner) public view returns (uint, bytes32, uint, uint, uint);
 
 }

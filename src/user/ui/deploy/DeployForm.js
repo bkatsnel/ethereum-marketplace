@@ -1,20 +1,21 @@
 import React from 'react'
 
-const DeployForm = ({web3, manager, market, storage, owners, loading, onMarket=f=>f, onOwners=f=>f, onGetMgr=f=>f}) => {
+const DeployForm = ({web3, manager, market, storage, owners, stores, loading, 
+     onMarket=f=>f, onOwners=f=>f, onStores=f=>f, onGetMgr=f=>f}) => {
 
   console.log('Deploy Form Entry', web3)
 
   const submit = e => {
     e.preventDefault()
-    market === "" ? onMarket() : onOwners()
+    market === "" ? onMarket() : owners === "" ? onOwners() : onStores()
   }
 
   const isVisiable = () => {
-    return (market === "" || owners === "") ? true : false
+    return (market === "" || owners === "" || stores === "") ? true : false
   }
 
   const toDeploy = () => {
-    return market === "" ? "Market" : "Store Owners"
+    return market === "" ? "Market" : owners === "" ? "Store Owners" : "Stores"
   }
 
   if (manager === "" && !loading) {
@@ -38,6 +39,8 @@ const DeployForm = ({web3, manager, market, storage, owners, loading, onMarket=f
           <input id="storage" type="text" value={storage === "" ? "N/A" : storage} size={50} readOnly />
           <label>Store Owners Address:</label>
           <input id="owners" type="text" value={owners === "" ? "N/A" : owners} size={50} readOnly />
+          <label>Stores Address:</label>
+          <input id="stores" type="text" value={stores === "" ? "N/A" : stores} size={50} readOnly />
           <br />
           <button type="submit" className="pure-button pure-button-primary" hidden={ isVisiable() ? "" : "hidden"}>Deploy {toDeploy()} Contract</button>
         </fieldset>

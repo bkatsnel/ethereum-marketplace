@@ -1,14 +1,13 @@
 var MarketManager = artifacts.require("./MarketManager.sol")
 var Market = artifacts.require("./Market.sol")
 var StoreOwners = artifacts.require("./StoreOwners.sol")
-var EternalStorage = artifacts.require("./EternalStorage.sol")
 
 const truffleAssert = require('truffle-assertions')
 
 contract('StoreOwners', function(accounts) {
 
-    let manager, market, storage, state, owners
-    let market_address, owners_address
+    let manager, owners
+    let market_address, owners_address, storage_address
 
     const adminAcct = accounts[0]
     const storeOwnerAcct = accounts[1]
@@ -32,20 +31,27 @@ contract('StoreOwners', function(accounts) {
 
         it("Deploy Initial StoreOwners Contract", async() => {
 
-            await manager.deployStoreOwnersContract({from: adminAcct})
+            owners = await StoreOwners.deployed(manager.address)
+            await manager.deployStoreOwnersContract(owners.address, {from: adminAcct})
         
             owners_address = await manager.getDeployedStoreOwnersContract.call({from: adminAcct})
-            assert.notEqual(owners_address, "0x0000000000000000000000000000000000000000")
+            assert.equal(owners_address, owners.address)
             // console.log("Owners", owners_address)   
             
-            owners = StoreOwners.at(owners_address)
+        })
+
+        it("Check StoreOwner Storage Address", async() => { 
+            storage_address = await manager.getDeployedStorageContract.call({from: adminAcct})
+            let owners_storage_address = await owners.getEternalStorageAddress.call({from: adminAcct})
+            assert.equal(storage_address, owners_storage_address)
+
         })
 
         it("Check StoreOwner owner", async() => {
 
             let owner = await owners.owner.call({from: adminAcct})
-            // console.log("Owner", owner)   
-            assert.equal(owner, adminAcct)
+            // console.log("Owner", owner, manager.address)   
+            assert.equal(owner, manager.address)
 
         })
 

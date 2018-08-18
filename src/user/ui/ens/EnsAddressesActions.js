@@ -1,5 +1,5 @@
 // import OnlineresolverContract from '../../../../build/contracts/Onlineresolver.json'
-import PublicResolver from '../../../../node_modules/@ensdomains/ens/build/contracts/PublicResolver.json'
+import PublicResolver from '../../../../build/contracts/PublicResolver.json'
 import store from '../../../store'
 import namehash from 'eth-ens-namehash'
 

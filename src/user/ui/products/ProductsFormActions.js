@@ -1,4 +1,5 @@
-import OnlineMarketplaceContract from '../../../../build/contracts/OnlineMarketplace.json'
+import MarketManagerContract from '../../../../build/contracts/MarketManager.json'
+import StoresContract from '../../../../build/contracts/Stores.json'
 import store from '../../../store'
 
 const contract = require('truffle-contract')
@@ -81,8 +82,11 @@ export function addProducts(name, id, quanity, price, description) {
 
     return function(dispatch) {
       // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const Stores = contract(StoresContract)
+      Stores.setProvider(web3.currentProvider)
 
       // Get current ethereum name.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -93,11 +97,12 @@ export function addProducts(name, id, quanity, price, description) {
 
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          let manager = await MarketMgr.deployed();
+          let stores_address = await manager.getDeployedStoresContract.call({from: coinbase})
           // Debug Message
           console.log("Adding Product", name, id, quanity, price, description)
           // Attempt to sign up user.
-          await instance.addStoreProduct(name, id, quanity, price, description, {from: coinbase})
+          await Stores.at(stores_address).addStoreProduct(name, id, quanity, price, description, {from: coinbase})
           // If no error, login user.
           // dispatch(resetProductsLoaded())
 
@@ -130,8 +135,12 @@ export function watchProducts(name) {
     return function(dispatch) {
 
       // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
+      const MarketMgr = contract(MarketManagerContract)
+      MarketMgr.setProvider(web3.currentProvider)
+
+      const Stores = contract(StoresContract)
+      Stores.setProvider(web3.currentProvider)
+
 
       // Get current ethereum name.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -144,18 +153,19 @@ export function watchProducts(name) {
 
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          let manager = await MarketMgr.deployed();
+          let stores_address = await manager.getDeployedStoresContract.call({from: coinbase})
           // If from Block is 0 get contrat created block
           if (fromBlock === 0) {
 
-              let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+              let contractBlock = await manager.getBlockCreated.call({from: coinbase})
               fromBlock = contractBlock.toNumber()
               dispatch(setProductsBlock({ "block": fromBlock}))
               console.log("Products From Block Set to ", fromBlock)
 
           }
           // Define Event
-          let addProductsEvent = instance.LogAddStoreProduct({name: name}, {fromBlock: fromBlock, toBlock: 'latest'})
+          let addProductsEvent = Stores.at(stores_address).LogAddStoreProduct({name: name}, {fromBlock: fromBlock, toBlock: 'latest'})
           // Watch Event
           addProductsEvent.watch((error, result) => {
             // Log errors, if any.
@@ -214,10 +224,13 @@ export function getProducts(name) {
 
     return function(dispatch) {
 
-      // Using truffle-contract we create the marketplace object.
-      const marketplace = contract(OnlineMarketplaceContract)
-      marketplace.setProvider(web3.currentProvider)
-
+       // Using truffle-contract we create the marketplace object.
+       const MarketMgr = contract(MarketManagerContract)
+       MarketMgr.setProvider(web3.currentProvider)
+ 
+       const Stores = contract(StoresContract)
+       Stores.setProvider(web3.currentProvider)
+ 
       // Get current ethereum name.
       web3.eth.getCoinbase(async (error, coinbase) => {
         // Log errors, if any.
@@ -229,11 +242,12 @@ export function getProducts(name) {
 
         try { 
           //Get Deployed Marketplace Contract Instance
-          let instance = await marketplace.deployed();
+          let manager = await MarketMgr.deployed();
+          let stores_address = await manager.getDeployedStoresContract.call({from: coinbase})
           // If from Block is 0 get contrat created block
           if (fromBlock === 0) {
 
-              let contractBlock = await instance.getBlockCreated.call({from: coinbase})
+              let contractBlock = await manager.getBlockCreated.call({from: coinbase})
               fromBlock = contractBlock.toNumber()
               dispatch(setProductsBlock({ "block": fromBlock}))
               console.log("Products From Block Set to ", fromBlock)
@@ -242,7 +256,7 @@ export function getProducts(name) {
           // Print Info
           console.log('Products Get Name', name)
           // Define Event
-          let addProductsEvent = instance.LogAddStoreProduct({name: name}, {fromBlock: fromBlock, toBlock: 'latest'})
+          let addProductsEvent = Stores.at(stores_address).LogAddStoreProduct({name: name}, {fromBlock: fromBlock, toBlock: 'latest'})
           // Watch Event
           addProductsEvent.get((error, results) => {
             // Log errors, if any.

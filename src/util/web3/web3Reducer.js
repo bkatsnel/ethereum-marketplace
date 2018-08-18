@@ -4,6 +4,7 @@ const initialState = {
   market: "",
   storage: "",
   owners: "",
+  stores: "",
   loading: false,
   block: 0
 }
