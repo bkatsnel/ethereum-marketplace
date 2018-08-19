@@ -71,7 +71,8 @@
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom",
     "ens": "truffle exec scripts/ens.js -n olmarket -a 2",
-    "bridge": "cd ethereum-bridge && node bridge -a 9 -H 127.0.0.1 -p 9545"
+    "bridge": "cd ethereum-bridge && node bridge -a 9 -H 127.0.0.1 -p 9545",
+    "inst_bridge": "mkdir ethereum-bridge && git clone https://github.com/oraclize/ethereum-bridge && cd ethereum-bridge && npm i"
   },
   "jest": {
     "collectCoverageFrom": [

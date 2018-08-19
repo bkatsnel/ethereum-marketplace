@@ -20,7 +20,7 @@ contract('EternalStorage', function(accounts) {
 
     beforeEach(async () => {
         eternalStorage = await EternalStorage.deployed()
-        console.log("Storage", eternalStorage.address)
+        // console.log("Storage", eternalStorage.address)
     })
     
     it("Initial balance should be 0", async() => {
@@ -29,7 +29,7 @@ contract('EternalStorage', function(accounts) {
 
     it("Contract owner should be accouny[0]", async() => {
         let owner = await eternalStorage.owner.call({from: ownerAcct})
-        console.log('Owner', owner)
+        // console.log('Owner', owner)
         assert.equal(owner, ownerAcct)
     })
 
