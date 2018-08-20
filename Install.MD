@@ -12,7 +12,7 @@
 
 * Set truffle.js: copy truffele-confihjs to truffle.js
 
-* Start developement network: truffle develop
+* Start development network: truffle develop
 
 * Install Oraclize bridge: npm run inst_bridge
 
@@ -25,17 +25,21 @@
 
 * Setup Metamask Accounts
 
-  * import truffle develop first 3 accounts to metamask
+  * import truffle develop first 3 accounts to MetaMask
 
 * Start Oraclize Bridge and verify OAR address
 
-    * npm run bridge
+  * npm run bridge
 	* check OAR Resolver address matches OraclizeGetPrice.sol address (line 21)
 
-* Verify and Deploy installation
+* Verify installation And Contracts
 
   * truffle compile
   * truffle test
+    * Note: most tests are coded in JavaScript because it is not possible to deploy a contract that imports all Dapp contracts due to block gas limit
+
+* Deploy Contracts and Run DApp
+
   * truffle migrate
-  * npm run ens
+  * npm run ens (for development network)
   * npm start

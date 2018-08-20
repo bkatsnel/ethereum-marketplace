@@ -20,7 +20,7 @@ Online marketplace DApp has the following functions
 
 * Create Store Owners 
 
-Make an account a store owner to autorize the account to create stores, add products and withdraw store funds
+Make an account a store owner to authorize the account to create stores, add products and withdraw store funds
 
 ## Store Owners Functions
 
@@ -37,7 +37,7 @@ Make an account a store owner to autorize the account to create stores, add prod
 
 ## Additional Administrator Functions
 
-For developement network there are additional functions
+For development network there are additional functions
 
 * Check IPFS client functions properly
 * Display development accounts registered in local ENS
