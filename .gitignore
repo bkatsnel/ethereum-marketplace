@@ -18,3 +18,4 @@ build_webpack
 ethereum-bridge
 dist
 backup
+secrets.js

@@ -1,14 +1,46 @@
-var OraclizeGetPrice = artifacts.require("./OraclizeGetPrice.sol");
+const Web3 = require('web3')
+const namehash = require('eth-ens-namehash')
+
+const ENS = artifacts.require("./ENSRegistry");
+const PublicResolver = artifacts.require("./PublicResolver");
+const ReverseRegistrar = artifacts.require("./ReverseRegistrar");
 
 module.exports = function(deployer, network, accounts) {
-  // Deploys the OraclizeGetPrice contract and funds it with 0.5 ETH
-  // The contract needs a balance > 0 to communicate with Oraclize
-  if (network === "development") {
 
-      deployer.deploy(
-        OraclizeGetPrice,
-        { from: accounts[9], gas:6721975, value: 500000000000000000 });
-        
-  }
+  let owner = accounts[0]
+  let tld = "eth"
 
-};
+  let web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:9545"));
+
+  deployer.then(() => {
+
+    if (network === "development") {
+
+      return deployer.deploy(ENS)
+        .then(() => {
+          return deployer.deploy(PublicResolver, ENS.address)
+        })
+        .then(() => {
+          return deployer.deploy(ReverseRegistrar, ENS.address, PublicResolver.address)
+        })
+        .then(() => {
+          return ENS.at(ENS.address)
+            // eth
+            .setSubnodeOwner(0, web3.sha3(tld), owner, {from: owner})
+        })
+        .then(() => {
+          return ENS.at(ENS.address)
+          // reverse
+          .setSubnodeOwner(0, web3.sha3('reverse'), owner, {from: owner})
+        })
+        .then(() => {
+          return ENS.at(ENS.address)
+          // addr.reverse
+          .setSubnodeOwner(namehash.hash('reverse'), web3.sha3('addr'), ReverseRegistrar.address, {from: owner})
+        })
+
+    }
+
+  })
+
+}

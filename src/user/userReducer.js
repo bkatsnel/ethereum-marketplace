@@ -7,6 +7,7 @@ const initialState = {
   home: null,
   orders: null,
   withdrawals: null,
+  stores: null,
   ipfs: null
 }
 

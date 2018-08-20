@@ -65,7 +65,7 @@ export function loginUser() {
                 // Attempt to login user.
                 let result = await market.login({from: coinbase})
                 // console.log("Login Result", result)
-                let id, userName, homeAddress, balance, orders, withdrawals, payload, ipfs
+                let id, userName, homeAddress, balance, orders, stores, payload, ipfs, withdrawals
                 let userType=web3.toUtf8(result)
 
                 console.log(web3.toUtf8(result));
@@ -82,14 +82,14 @@ export function loginUser() {
                       id = ownerInfo[0].toNumber()
                       userName = web3.toUtf8(ownerInfo[1])
                       balance = ownerInfo[2].toNumber()
-                      withdrawals = ownerInfo[3].toNumber()
+                      stores = ownerInfo[3].toNumber()
                       orders = ownerInfo[4].toNumber()
                       // Add IPFS Connection
                       ipfs = ipfsAPI('localhost', '5001')
                       // Create OWner user payload
                       payload = {
                         "name": userName, "type": userType, "address": coinbase,
-                        "id": id, "balance": balance,  "withdrawals": withdrawals, orders: orders, "ipfs": ipfs
+                        "id": id, "balance": balance,  "stores": stores, orders: orders, "ipfs": ipfs
                       }
                       break
 
