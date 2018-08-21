@@ -89,7 +89,8 @@ export function loginUser() {
                       // Create OWner user payload
                       payload = {
                         "name": userName, "type": userType, "address": coinbase,
-                        "id": id, "balance": balance,  "stores": stores, orders: orders, "ipfs": ipfs
+                        "id": id, "balance": balance,  "stores": stores, orders: orders, withdrawals: 0,
+                        "ipfs": ipfs
                       }
                       break
 

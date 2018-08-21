@@ -10,7 +10,7 @@
 
 * Install node modules: npm install
 
-* Set truffle.js: copy truffele-confihjs to truffle.js
+* Set truffle.js: copy truffle-config.js to truffle.js
 
 * Start development network: truffle develop
 
@@ -27,6 +27,10 @@
 
   * import truffle develop first 3 accounts to MetaMask
 
+* Create secrets.js File
+
+  * Create secrets.js based on secrets-template.js file
+
 * Start Oraclize Bridge and verify OAR address
 
   * npm run bridge
@@ -35,11 +39,19 @@
 * Verify installation And Contracts
 
   * truffle compile
-  * truffle test
+  * truffle test --network development 
     * Note: most tests are coded in JavaScript because it is not possible to deploy a contract that imports all Dapp contracts due to block gas limit
 
 * Deploy Contracts and Run DApp
 
-  * truffle migrate
+  * truffle migrate --network development
   * npm run ens (for development network)
   * npm start
+
+# Ropsten Test Notes
+
+* Get ready for testing
+
+  * Add Ropsten ether to first 3 wallet accounts
+  * Update secrets.js with correct mnemonic and injura API information
+  * Use test and migrate commands with --network ropsten parameter
