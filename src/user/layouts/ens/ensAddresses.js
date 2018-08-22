@@ -8,7 +8,7 @@ class EnsAddressses extends Component {
         <div className="pure-g">
           <div className="pure-u-1-1">
             <br />
-            <h1>Test Network Ens Registered Addresses</h1>
+            <h1>Test Network ENS Registered Addresses</h1>
             <EnsAddressesContainer />
           </div>
         </div>

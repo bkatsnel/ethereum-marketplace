@@ -2,6 +2,8 @@ const initialState = {
     loading: false,
     loaded: false,
     records: [],
+    name: "",
+    address: "",
     block: 0
   }
   
@@ -30,6 +32,14 @@ const initialState = {
 
         return state
 
+      }
+    }
+
+    if (action.type === 'ADD_ENS_DOMAIN') {
+      return {
+        ...state, 
+        name: action.payload.name,
+        address: action.payload.address
       }
     }
 

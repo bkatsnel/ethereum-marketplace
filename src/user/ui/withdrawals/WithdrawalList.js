@@ -54,7 +54,7 @@ const WithdrawalList = ({user, loading, loaded, withdrawals, onWatch=f=>f}) => {
           <label>Balance:</label>
           <input id="balance" type="text" value={user.balance}placeholder="Balance" readOnly onDoubleClick={() => goToWithdrawal()}/>
           <label>Stores:</label>
-          <input id="stores" type="text" value={user.stores} placeholder="Withdrawals" readOnly />
+          <input id="stores" type="text" value={user.stores} placeholder="stores" readOnly />
         </fieldset>
       </form>
 

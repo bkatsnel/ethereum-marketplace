@@ -1,17 +1,26 @@
-// import OnlineresolverContract from '../../../../build/contracts/Onlineresolver.json'
-import PublicResolver from '../../../../build/contracts/PublicResolver.json'
+import PublicResolverContract from '../../../../build/contracts/PublicResolver.json'
+import ENSRegistryContract from '../../../../build/contracts/ENSRegistry.json';
+import ENS from 'ethereum-ens'
 import store from '../../../store'
 import namehash from 'eth-ens-namehash'
 
 const contract = require('truffle-contract')
 
 export const ADD_ENS_RECORD = 'ADD_ENS_RECORD'
+export const ADD_ENS_DOMAIN = 'ADD_ENS_DOMAIN'
 export const START_ENS_LOAD = 'START_ENS_LOAD'
 export const END_ENS_LOAD = 'END_ENS_LOAD'
 
 function addEnsRecord(payload) {
   return {
     type: ADD_ENS_RECORD,
+    payload: payload
+  }
+}
+
+function addEnsDomain(payload) {
+  return {
+    type: ADD_ENS_DOMAIN,
     payload: payload
   }
 }
@@ -53,6 +62,7 @@ function populateEnsStore(results, dispatch, instance) {
 }
 
 export function getENS() {
+
   let web3 = store.getState().web3.web3Instance
   let fromBlock = store.getState().ens.block
   //Debug Code
@@ -63,8 +73,8 @@ export function getENS() {
     return function(dispatch) {
 
       // Using truffle-contract we create the resolver object.
-      const resolver = contract(PublicResolver)
-      resolver.setProvider(web3.currentProvider)
+      const PublicResolver = contract(PublicResolverContract)
+      PublicResolver.setProvider(web3.currentProvider)
 
       // Get current ethereum name.
       web3.eth.getCoinbase(async (error, coinbase) => {
@@ -77,9 +87,9 @@ export function getENS() {
 
         try { 
           //Get Deployed resolver Contract Instance
-          let instance = await resolver.deployed();
+          let resolver = await PublicResolver.deployed();
           // Define Event
-          let addEnsAddressEvent = instance.AddrChanged({}, {fromBlock: fromBlock, toBlock: 'latest', address: web3.eth.accounts })
+          let addEnsAddressEvent = resolver.AddrChanged({}, {fromBlock: fromBlock, toBlock: 'latest', address: web3.eth.accounts })
           // Watch Event
           addEnsAddressEvent.get(async (error, results) => {
             // Log errors, if any.
@@ -88,7 +98,7 @@ export function getENS() {
             }
             // Process results if any
             if (results.length > 0) {
-              await populateEnsStore(results, dispatch, instance)
+              await populateEnsStore(results, dispatch, resolver)
             }
             // Set load complete when done
             return dispatch(endENSLoad());
@@ -111,5 +121,75 @@ export function getENS() {
     console.error('Web3 is not initialized.');
 
   }
+}
+
+export function getName() {
+
+  let web3 = store.getState().web3.web3Instance
+
+  console.log("Get ENS Name")
+
+  if (typeof web3 !== 'undefined') {
+
+    // Using truffle-contract we create the resolver object.
+    const ENSRegistry = contract(ENSRegistryContract)
+    ENSRegistry.setProvider(web3.currentProvider)
+
+    return function(dispatch) {
+
+      // Get current ethereum name.
+      web3.eth.getCoinbase(async (error, coinbase) => {
+        // Log errors, if any.
+        if (error) {
+          console.error(error);
+        }
+
+        try {
+
+          web3.version.getNetwork(async (err, network) => {
+
+            let name
+            console.log("Network", network)
+
+            ENSRegistry.setNetwork(network)
+
+            if (network > 10) {
+
+                // let resolver = await PublicResolver.deployed();
+                // name = await resolver.name.call(namehash.hash(`${coinbase.slice(2)}.addr.reverse`))
+
+                let ens = await new ENS(web3.currentProvider, ENSRegistry.address);
+                name = await ens.reverse(coinbase).name()
+                console.log(name)
+
+                // name.call(namehash.hash(`${accounts[i].slice(2)}.addr.reverse`));
+
+            }
+
+            let payload = { "name": name, "address": coinbase }
+            console.log("Reverse ENS Payload", payload)
+
+            return dispatch(addEnsDomain(payload))
+
+          })
+
+        } catch(error) {
+          
+          console.error(error)
+
+        }
+
+        
+
+      })
+
+    }
+
+  } else {
+
+    console.error('Web3 is not initialized.');
+
+  }
+
 }
 

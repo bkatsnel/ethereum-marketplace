@@ -36,7 +36,7 @@ const PaymentForm = ({name, id, balance, withdrawals, store, store_balance, onWi
           <label>Withdrawals:</label>
           <input id="withdrawals" type="text" value={withdrawals} readOnly />
           <label htmlFor="storeName">Store Name</label>
-          <input id="storeName" type="text" value={name} readOnly />
+          <input id="storeName" type="text" value={store} readOnly />
           <label>Store Balance:</label>
           <input id="store_balance" type="text" value={store_balance} readOnly />
           <br />
