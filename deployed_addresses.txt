@@ -1,0 +1,14 @@
+Network: ropsten (id: 3)
+
+  Customers: 0xffebd7a7e22446e3c977ad99c2c422022a10920e
+  EternalStorage: 0x76a957b15cdeee75c6c566fff545ea905f352dab
+  Market: 0x27e2bf3eea81cf8102220117f1114765f8371fce
+  MarketManager: 0x0400d54687f85b86702eed604a6dda72569c7947
+  Migrations: 0x1095a5495d53077fd8433af9cf4643c09b18f72b
+  SafeMath: 0xa57ced49ce2c3c5ec34292d3e85c178dee9579be
+  SecurityLibrary: 0x5c40e3a1ee9f0eabb6f44c49f66c49bfa1b4114e
+  StoreOwners: 0x5bb35e6b9a731b3e3659a54ca51ace2945ae478b
+  Stores: 0xb64c5082c49c871c2d73e1deb45594c02d1f8439
+
+
+  Please, note I deployed these contracts a few times
