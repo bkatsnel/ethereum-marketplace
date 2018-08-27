@@ -7,6 +7,11 @@ import "./IStores.sol";
 import "./ICustomers.sol";
 import "./IMarketManager.sol";
 
+/** @title Market Manager
+    @author Boris Katsnelson
+    @dev The contract managers refistration of component contracts
+*/
+
 contract MarketManager is IMarketManager {
 
     // Modifier Definitions
@@ -29,6 +34,11 @@ contract MarketManager is IMarketManager {
     // Events Ar Inherited
 
     //  Function Bodies
+
+    /**
+       @dev The functions creates first Narket and EternalStorage Contracts
+            and assigns proper ownerships and first adminitratrtors
+     */
 
     function deployMarketContract() public onlyOwner whenNotPaused {
 
@@ -54,6 +64,11 @@ contract MarketManager is IMarketManager {
      
     }
 
+    /**
+      @dev The functions records Store Owners Contract Address,
+           sets porper ownership and EternalStorage address
+     */
+
     function deployStoreOwnersContract(address _owners) public onlyOwner whenNotPaused ValidAddress(_owners) {
 
         if (owners == address(0)) {
@@ -70,6 +85,11 @@ contract MarketManager is IMarketManager {
         }
 
     }
+
+    /**
+      @dev The functions records Stores Contract Address,
+           sets porper ownership and EternalStorage address
+    */
 
     function deployStoresContract(address _stores) public onlyOwner whenNotPaused {
 
@@ -89,6 +109,11 @@ contract MarketManager is IMarketManager {
         }
     }
 
+    /**
+      @dev The functions records Customers Contract Address,
+           sets porper ownership and EternalStorage address
+    */
+
     function deployCustomersContract(address _customers) public onlyOwner whenNotPaused {
 
         if (customers == address(0)) {
@@ -106,6 +131,11 @@ contract MarketManager is IMarketManager {
 
         }
     }
+
+    /**
+      @dev The functions performs Market Contract upgrade
+           by assigning EternalStorage to new version of Market Contract
+    */
 
     function upgradeMarketContact(address _market) public onlyOwner whenNotPaused {
 
